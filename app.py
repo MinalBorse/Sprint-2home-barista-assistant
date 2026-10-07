@@ -38,6 +38,7 @@ from src.agent import ask_agent, build_agent
 from src.brew_methods import ANY
 from src.llm import get_llm
 from src.security import BLOCKED_REPLY, check_message
+from src.theme import apply_cafe_theme
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 
@@ -159,8 +160,12 @@ def start_new_conversation():
 # The page
 # ==========================================================
 st.set_page_config(page_title="Home Barista Assistant", page_icon="☕")
+
+# The cosy coffee-shop look (pure CSS, no images) - see src/theme.py
+apply_cafe_theme()
+
 st.title("☕ Home Barista Assistant")
-st.caption("Ask about brewing, fixing coffee that tastes wrong, caffeine, or what your coffee costs.")
+st.caption("Your neighbourhood café, at home. Ask about brewing, fixing coffee that tastes wrong, caffeine, or what your coffee costs.")
 
 # Connect to the database, model and agent
 vector_store, agent = load_resources()
@@ -188,7 +193,7 @@ with st.sidebar:
     st.button("New conversation", on_click=start_new_conversation)
     st.caption("The assistant remembers this conversation, so follow-up questions work.")
 
-    st.header("What I can do")
+    st.header("On the menu today")
     st.markdown(
         "- Answer brewing and taste questions from my coffee guides\n"
         "- Calculate water for your coffee dose\n"
