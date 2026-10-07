@@ -1,0 +1,102 @@
+# Home Brewing Guide
+
+This guide explains how to brew good coffee at home with the most common methods. For each method it gives the grind size, the coffee-to-water ratio, the water temperature, the brew time and the main steps. Use it as a starting point, then adjust to your taste.
+
+## Water temperature for brewing
+
+For most brewing methods, use water between 90 and 96 degrees Celsius. If you don't have a thermometer, boil the water and let it rest for about 30 seconds.
+
+- Light roasts usually taste best with hotter water, around 94 to 96 degrees Celsius.
+- Dark roasts usually taste best with slightly cooler water, around 88 to 92 degrees Celsius, which reduces bitterness.
+- Water that is too cool can make coffee sour. Water that is boiling can make coffee bitter.
+
+## Pour-over and V60 (filter or drip coffee)
+
+A pour-over, such as the Hario V60, brews coffee by pouring hot water slowly over ground coffee in a paper filter.
+
+- Grind: medium-fine, like table salt.
+- Ratio: about 1:16, for example 15 grams of coffee for 240 grams of water.
+- Water temperature: 92 to 96 degrees Celsius.
+- Total brew time: about 2 minutes 30 seconds to 3 minutes 30 seconds.
+
+Steps:
+1. Rinse the paper filter with hot water, then throw that water away.
+2. Add the coffee and pour about twice its weight in water to "bloom" it. Wait 30 to 45 seconds.
+3. Pour the rest of the water slowly in small circles, keeping the coffee bed covered.
+4. If it drains too fast, grind finer. If it drains too slowly, grind coarser.
+
+## French press (cafetiere, press pot, coffee plunger)
+
+A French press steeps coffee grounds in hot water, then separates them with a metal mesh filter. It makes a full-bodied cup.
+
+- Grind: coarse, like sea salt.
+- Ratio: about 1:15, for example 20 grams of coffee for 300 grams of water.
+- Water temperature: 93 to 96 degrees Celsius.
+- Steep time: about 4 minutes.
+
+Steps:
+1. Add the coffee and pour in all the water.
+2. Stir gently after 1 minute to break the crust of grounds on top.
+3. At 4 minutes, press the plunger down slowly.
+4. Pour all the coffee out right away. Coffee left on the grounds keeps brewing and turns bitter.
+
+## AeroPress
+
+The AeroPress is a small plastic brewer that steeps coffee briefly and then pushes it through a paper filter with air pressure. It is quick, forgiving and easy to clean.
+
+- Grind: medium-fine to fine.
+- Ratio: about 1:14, for example 15 grams of coffee for 210 grams of water.
+- Water temperature: 85 to 92 degrees Celsius. The AeroPress works well with slightly cooler water.
+- Brew time: about 1 to 2 minutes, plus 20 to 30 seconds of pressing.
+
+Steps:
+1. Put a rinsed paper filter in the cap.
+2. Add the coffee and the water, and stir for about 10 seconds.
+3. Wait about 1 minute, then press gently and steadily.
+4. Stop pressing when you hear a hissing sound.
+
+## Moka pot (stovetop espresso maker)
+
+A moka pot is a stovetop brewer that pushes hot water up through the coffee using steam pressure. It makes strong, intense coffee, but it is not true espresso.
+
+- Grind: fine, but slightly coarser than espresso.
+- Coffee: fill the basket level to the top. Do not press or tamp it down.
+- Water: fill the bottom chamber up to just below the safety valve.
+
+Steps:
+1. Use hot water in the bottom chamber, so the coffee spends less time on the heat.
+2. Brew on medium-low heat with the lid open.
+3. When the coffee turns pale and starts to sputter or gurgle, take it off the heat.
+4. Cool the base under cold water to stop brewing. Overheating a moka pot is the most common cause of bitter, burnt-tasting moka coffee.
+
+## Espresso
+
+Espresso is made by forcing hot water through finely ground, tightly packed coffee at high pressure, about 9 bar. It needs an espresso machine.
+
+- Grind: fine, like flour or powdered sugar.
+- Ratio: about 1:2, for example 18 grams of ground coffee to get 36 grams of espresso in the cup.
+- Water temperature: 90 to 96 degrees Celsius.
+- Shot time: about 25 to 30 seconds.
+
+If the shot runs much faster than 25 seconds, it usually tastes sour: grind finer. If it runs much slower than 30 seconds, it usually tastes bitter: grind coarser.
+
+## Cold brew
+
+Cold brew steeps coarse coffee in cold or room-temperature water for many hours. It tastes smooth, sweet and low in acidity.
+
+- Grind: coarse.
+- Ratio: about 1:8 for a concentrate, for example 100 grams of coffee for 800 grams of water.
+- Steep time: 12 to 24 hours, in the fridge or at room temperature.
+
+Filter the coffee after steeping. Dilute the concentrate with water or milk, about one to one, before drinking.
+
+## Quick reference
+
+| Method | Grind | Ratio | Water temperature | Time |
+|---|---|---|---|---|
+| Pour-over / V60 | Medium-fine | 1:16 | 92-96 C | 2.5-3.5 min |
+| French press | Coarse | 1:15 | 93-96 C | 4 min |
+| AeroPress | Medium-fine to fine | 1:14 | 85-92 C | 1-2 min |
+| Moka pot | Fine | Fill basket | Hot water in base | Until it sputters |
+| Espresso | Fine | 1:2 | 90-96 C | 25-30 s |
+| Cold brew | Coarse | 1:8 | Cold or room temperature | 12-24 h |
