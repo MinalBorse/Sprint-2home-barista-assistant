@@ -12,12 +12,16 @@
 #   - gold details      -> thin champagne-gold lines and borders
 #   - the sidebar       -> deep roasted brown with a gold edge
 #
-# The bean emblem used as logo and avatar is a small image file in assets/.
+# The bean emblem used as logo and avatar, and the coffee-bar scene in the
+# background, are image files in assets/, also drawn in code.
 #
 # Streamlit lets us add our own CSS/HTML with st.markdown(..., unsafe_allow_html=True).
 # "data-testid" names are labels Streamlit puts on its parts of the page,
 # so the CSS can find them.
 # ==========================================================
+
+import base64
+import os
 
 import streamlit as st
 
@@ -25,6 +29,9 @@ import streamlit as st
 # The bean emblem (made in code, saved as image files)
 LOGO_IMAGE = "assets/logo_bean.png"
 AVATAR_IMAGE = "assets/barista_avatar.png"
+
+# The background scene: a coffee bar seen from above (drawn in code)
+BACKGROUND_IMAGE = "assets/cafe_background.jpg"
 
 
 # A tiny, very faint pattern of coffee beans for the page background
@@ -252,9 +259,74 @@ SIDEBAR_BRAND_HTML = """
 """
 
 
+# ==========================================================
+# The background scene behind the chat
+# ==========================================================
+@st.cache_data
+def image_as_data_uri(path):
+    """
+    Turn an image file into text that CSS can use directly.
+    (CSS in Streamlit can't read files from our folders, so we put
+    the image INSIDE the CSS, encoded as text: a "data URI".)
+    @st.cache_data: read and encode the file only once.
+    """
+    with open(path, "rb") as image_file:
+        encoded = base64.b64encode(image_file.read()).decode("ascii")
+    return "data:image/jpeg;base64," + encoded
+
+
+def background_css():
+    """
+    CSS that shows the coffee-bar scene around the chat, and puts
+    the chat itself on a dark panel, so the text stays easy to read.
+    If the image is missing, we simply keep the plain background.
+    """
+    if not os.path.exists(BACKGROUND_IMAGE):
+        return ""
+
+    image_uri = image_as_data_uri(BACKGROUND_IMAGE)
+    return """
+<style>
+/* The scene, slightly darkened so it stays in the background */
+[data-testid="stAppViewContainer"] {
+    background-image:
+        linear-gradient(rgba(8, 6, 4, 0.30), rgba(8, 6, 4, 0.55)),
+        url("IMAGE_URI");
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* The chat column: a dark, softly framed panel in the middle */
+[data-testid="stMainBlockContainer"], .block-container {
+    background: rgba(14, 11, 9, 0.90);
+    border: 1px solid rgba(200, 163, 106, 0.22);
+    border-radius: 10px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(4px);
+    margin-top: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+/* The bottom strip: let the wood show, and frame only the input area */
+[data-testid="stBottom"] > div {
+    background: transparent;
+    border-top: none;
+}
+[data-testid="stBottomBlockContainer"] {
+    background: rgba(14, 11, 9, 0.94);
+    border: 1px solid rgba(200, 163, 106, 0.22);
+    border-bottom: none;
+    border-radius: 10px 10px 0 0;
+}
+</style>
+""".replace("IMAGE_URI", image_uri)
+
+
 def apply_cafe_theme():
     """Add the R Café styling and logo. Call it once, near the top of app.py."""
     st.markdown(CAFE_CSS, unsafe_allow_html=True)
+    st.markdown(background_css(), unsafe_allow_html=True)
     # st.logo fills the logo spot at the top of the sidebar
     st.logo(LOGO_IMAGE, size="large", icon_image=LOGO_IMAGE)
 
