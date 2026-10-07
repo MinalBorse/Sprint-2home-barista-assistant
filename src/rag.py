@@ -30,6 +30,7 @@ from src.brew_methods import ANY, BREW_METHODS, GENERAL
 # ----------------------------------------------------------
 # Settings
 # ----------------------------------------------------------
+TRUSTED_SOURCE_TYPE = "own guide"   # our own, checked guides (not Wikipedia)
 TOP_K = 4                       # how many chunks to retrieve
 MAX_SEARCH_QUERY_LENGTH = 200   # a longer rewrite is suspicious, so we don't use it
 
@@ -115,18 +116,31 @@ def rewrite_query(question, llm):
 # ==========================================================
 # PART 2: RETRIEVAL (with an optional brew-method filter)
 # ==========================================================
-def build_filter(brew_method):
+def build_filter(brew_method, trusted_only=False):
     """
-    The Chroma filter for a brew method.
-    We ALWAYS include "general" chunks too (like the troubleshooting
-    guide), because they apply to every brew method.
+    The Chroma filter for a search. It can combine two conditions:
+      - brew_method: only that method's chunks, plus "general" chunks
+        (like the troubleshooting guide), which apply to every method
+      - trusted_only: only our own guides, no Wikipedia
+    Returns None when there is nothing to filter.
     """
-    if brew_method == ANY:
+    conditions = []
+
+    if brew_method != ANY:
+        conditions.append({"brew_method": {"$in": [brew_method, GENERAL]}})
+
+    if trusted_only:
+        conditions.append({"source_type": TRUSTED_SOURCE_TYPE})
+
+    if len(conditions) == 0:
         return None
-    return {"brew_method": {"$in": [brew_method, GENERAL]}}
+    if len(conditions) == 1:
+        return conditions[0]
+    # Several conditions: ALL of them must be true
+    return {"$and": conditions}
 
 
-def retrieve(search_query, vector_store, k=TOP_K, brew_method=ANY):
+def retrieve(search_query, vector_store, k=TOP_K, brew_method=ANY, trusted_only=False):
     """
     Search Chroma and return a list of sources.
     Each source is a dictionary with the chunk text and its details.
@@ -136,7 +150,7 @@ def retrieve(search_query, vector_store, k=TOP_K, brew_method=ANY):
     results = vector_store.similarity_search_with_score(
         search_query,
         k=k,
-        filter=build_filter(brew_method),
+        filter=build_filter(brew_method, trusted_only),
     )
 
     sources = []

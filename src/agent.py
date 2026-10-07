@@ -22,13 +22,29 @@
 #   - "Add relevant security measures for your domain" (rules in the prompt)
 # ==========================================================
 
+from dataclasses import dataclass
+
 from langchain.agents import create_agent
+from langchain.tools import ToolRuntime
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langchain_core.tools import tool
 from langgraph.checkpoint.memory import InMemorySaver
 
+from src.brew_methods import ANY
 from src.rag import build_context, plan_search, retrieve
 from src.tools import CALCULATOR_TOOLS
+
+
+# ==========================================================
+# The user's preferences (set in the sidebar)
+# ==========================================================
+# A "dataclass" is a simple container for a few named values.
+# We pass it with EVERY question as "runtime context": extra information
+# for our tools. The AI never sees it as something it can change.
+@dataclass
+class UserPreferences:
+    brewer: str = ANY            # the user's own brew method, or "any"
+    trusted_only: bool = False   # search only our own guides (no Wikipedia)
 
 
 # ==========================================================
@@ -67,15 +83,35 @@ def make_search_tool(vector_store, llm):
     """
 
     @tool(response_format="content_and_artifact")
-    def search_coffee_knowledge(question: str) -> tuple:
+    def search_coffee_knowledge(question: str, runtime: ToolRuntime[UserPreferences]) -> tuple:
         """Search the coffee knowledge base (brewing guides, troubleshooting, roasting, brew methods).
         Use this for any question about how to brew coffee, fix taste problems, or understand coffee.
 
         question: the user's coffee question, for example "why is my moka pot coffee bitter?"
         """
+        # The user's sidebar preferences arrive through the runtime context.
+        # ("runtime" is filled in by LangChain; the AI doesn't see or set it.)
+        preferences = runtime.context or UserPreferences()
+
         # Query translation + structured retrieval (from src/rag.py)
         plan = plan_search(question, llm)
-        sources = retrieve(plan["search_query"], vector_store, brew_method=plan["brew_method"])
+
+        # "My brewer": if the question doesn't name a brew method,
+        # focus on the user's own brewer. If it DOES name one, the question wins.
+        plan["used_my_brewer"] = False
+        if plan["brew_method"] == ANY and preferences.brewer != ANY:
+            plan["brew_method"] = preferences.brewer
+            plan["used_my_brewer"] = True
+
+        # "Trusted guides only": skip Wikipedia, use only our own guides
+        plan["trusted_only"] = preferences.trusted_only
+
+        sources = retrieve(
+            plan["search_query"],
+            vector_store,
+            brew_method=plan["brew_method"],
+            trusted_only=preferences.trusted_only,
+        )
 
         if not sources:
             return "No relevant coffee notes were found.", {"plan": plan, "sources": []}
@@ -100,6 +136,8 @@ def build_agent(vector_store, llm):
         system_prompt=AGENT_SYSTEM_PROMPT,
         # InMemorySaver keeps each conversation in memory (lost on restart).
         checkpointer=InMemorySaver(),
+        # The shape of the per-request extra information (the preferences)
+        context_schema=UserPreferences,
     )
     return agent
 
@@ -107,7 +145,7 @@ def build_agent(vector_store, llm):
 # ==========================================================
 # Asking the agent, and collecting what happened
 # ==========================================================
-def ask_agent(agent, question, thread_id):
+def ask_agent(agent, question, thread_id, preferences=None):
     """
     Send one message to the agent and return a dictionary:
       "answer"     -> the final answer text
@@ -116,11 +154,16 @@ def ask_agent(agent, question, thread_id):
       "plans"      -> the search plans (search query + brew method) it used
 
     thread_id: which conversation this is. Same thread_id = same memory.
+    preferences: the user's sidebar settings (UserPreferences)
     """
+    if preferences is None:
+        preferences = UserPreferences()
+
     config = {"configurable": {"thread_id": thread_id}}
     state = agent.invoke(
         {"messages": [{"role": "user", "content": question}]},
         config=config,
+        context=preferences,
     )
     messages = state["messages"]
 

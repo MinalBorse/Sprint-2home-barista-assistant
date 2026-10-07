@@ -34,7 +34,7 @@ import uuid
 
 import streamlit as st
 
-from src.agent import ask_agent, build_agent
+from src.agent import UserPreferences, ask_agent, build_agent
 from src.brew_methods import ANY
 from src.llm import get_llm
 from src.security import BLOCKED_REPLY, check_message
@@ -58,6 +58,18 @@ STARTER_QUESTIONS = [
 ]
 
 ASSISTANT_AVATAR = "☕"
+
+# "My brewer" choices: the label shown in the sidebar -> the brew_method
+# stored on our chunks (see src/brew_methods.py)
+BREWER_CHOICES = {
+    "Not set": ANY,
+    "Pour-over / V60": "pour-over",
+    "French press": "french press",
+    "AeroPress": "aeropress",
+    "Moka pot": "moka pot",
+    "Espresso machine": "espresso",
+    "Cold brew": "cold brew",
+}
 
 # Friendly names and icons for each tool, shown in the UI
 TOOL_LABELS = {
@@ -123,12 +135,19 @@ def show_tool_results(tool_calls):
 
 
 def show_search_plans(plans):
-    """Show what the knowledge search looked for, and the brew-method filter."""
+    """Show what the knowledge search looked for, and which filters it used."""
     for plan in plans:
         text = f"Searched for: {plan.get('search_query', '')}"
+
         brew_method = plan.get("brew_method", ANY)
         if brew_method != ANY:
             text = text + f"  ·  Filter: {brew_method} + general"
+            if plan.get("used_my_brewer"):
+                text = text + " (your brewer)"
+
+        if plan.get("trusted_only"):
+            text = text + "  ·  Trusted guides only"
+
         st.caption(text)
 
 
@@ -234,6 +253,14 @@ with st.sidebar:
     st.button("New conversation", on_click=start_new_conversation)
     st.caption("The assistant remembers this conversation, so follow-up questions work.")
 
+    st.header("Your preferences")
+    # STRUCTURED RETRIEVAL, chosen by the user:
+    # these become filters on the knowledge search
+    brewer_label = st.selectbox("My brewer", list(BREWER_CHOICES.keys()))
+    st.caption("Questions that don't name a brewer will focus on yours.")
+    trusted_only = st.toggle("Trusted guides only", value=False)
+    st.caption("Use only R Café's own checked guides, not Wikipedia.")
+
     st.header("On the menu tonight")
     st.markdown(
         "- Answer brewing and taste questions from my coffee guides\n"
@@ -306,7 +333,11 @@ if question is not None:
         with st.status("Thinking...", expanded=False) as status:
             # REQUIREMENT: "Implement proper error handling"
             try:
-                result = ask_agent(agent, question, st.session_state.thread_id)
+                preferences = UserPreferences(
+                    brewer=BREWER_CHOICES[brewer_label],
+                    trusted_only=trusted_only,
+                )
+                result = ask_agent(agent, question, st.session_state.thread_id, preferences)
 
                 # List each tool the agent used, inside the status box
                 for call in result["tool_calls"]:
