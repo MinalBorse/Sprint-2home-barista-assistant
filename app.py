@@ -38,7 +38,7 @@ from src.agent import ask_agent, build_agent
 from src.brew_methods import ANY
 from src.llm import get_llm
 from src.security import BLOCKED_REPLY, check_message
-from src.theme import apply_cafe_theme
+from src.theme import apply_cafe_theme, show_welcome_banner
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 
@@ -46,6 +46,18 @@ from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 # Settings
 # ----------------------------------------------------------
 MAX_QUESTION_LENGTH = 500    # longer questions are rejected (input validation)
+
+# Starter questions shown in the barista's greeting.
+# Tapping one asks it straight away.
+# OPTIONAL TASK (easy): "Add an interactive help feature or chatbot guide"
+STARTER_QUESTIONS = [
+    "Why does my coffee taste bitter?",
+    "How much water for 18 g of coffee?",
+    "How much caffeine is in a 350 ml cold brew?",
+    "How do I brew with a moka pot?",
+]
+
+ASSISTANT_AVATAR = "☕"
 
 # Friendly names and icons for each tool, shown in the UI
 TOOL_LABELS = {
@@ -150,6 +162,37 @@ def show_assistant_extras(result):
     show_sources(result.get("sources", []))
 
 
+def ask_starter_question(question):
+    """Called when a starter button is tapped: ask that question next."""
+    st.session_state.pending_question = question
+
+
+def show_barista_greeting(show_buttons):
+    """
+    The first message in every conversation: a friendly greeting.
+    While the conversation is empty, it also offers starter questions.
+    OPTIONAL TASK (easy): "Add an interactive help feature or chatbot guide"
+    """
+    with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
+        st.markdown(
+            "Hi, welcome to **R Café**! ☕ What are we brewing today? "
+            "Ask me anything about coffee, or tap one of these to get started:"
+        )
+        if not show_buttons:
+            return
+        columns = st.columns(2)
+        for index in range(len(STARTER_QUESTIONS)):
+            starter = STARTER_QUESTIONS[index]
+            with columns[index % 2]:
+                st.button(
+                    starter,
+                    key=f"starter_{index}",
+                    on_click=ask_starter_question,
+                    args=(starter,),
+                    use_container_width=True,
+                )
+
+
 def start_new_conversation():
     """Clear the screen and give the agent a fresh memory (new thread)."""
     st.session_state.messages = []
@@ -159,13 +202,11 @@ def start_new_conversation():
 # ==========================================================
 # The page
 # ==========================================================
-st.set_page_config(page_title="Home Barista Assistant", page_icon="☕")
+st.set_page_config(page_title="R Café · Home Barista Assistant", page_icon="☕")
 
-# The cosy coffee-shop look (pure CSS, no images) - see src/theme.py
+# The R Café look (pure CSS and SVG, no images) - see src/theme.py
 apply_cafe_theme()
-
-st.title("☕ Home Barista Assistant")
-st.caption("Your neighbourhood café, at home. Ask about brewing, fixing coffee that tastes wrong, caffeine, or what your coffee costs.")
+show_welcome_banner()
 
 # Connect to the database, model and agent
 vector_store, agent = load_resources()
@@ -193,7 +234,7 @@ with st.sidebar:
     st.button("New conversation", on_click=start_new_conversation)
     st.caption("The assistant remembers this conversation, so follow-up questions work.")
 
-    st.header("On the menu today")
+    st.header("On the menu tonight")
     st.markdown(
         "- Answer brewing and taste questions from my coffee guides\n"
         "- Calculate water for your coffee dose\n"
@@ -204,8 +245,18 @@ with st.sidebar:
 # ----------------------------------------------------------
 # Show the conversation so far
 # ----------------------------------------------------------
+# Every conversation starts with the barista's greeting.
+# The starter buttons only appear while nothing has been asked yet.
+conversation_is_empty = len(st.session_state.messages) == 0
+no_question_waiting = not st.session_state.get("pending_question")
+show_barista_greeting(show_buttons=conversation_is_empty and no_question_waiting)
+
 for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
+    if message["role"] == "assistant":
+        avatar = ASSISTANT_AVATAR
+    else:
+        avatar = None
+    with st.chat_message(message["role"], avatar=avatar):
         st.markdown(message["content"])
         if message["role"] == "assistant":
             show_assistant_extras(message)
@@ -213,7 +264,12 @@ for message in st.session_state.messages:
 # ----------------------------------------------------------
 # A new question
 # ----------------------------------------------------------
-question = st.chat_input("Ask a coffee question...")
+question = st.chat_input("Ask your barista...")
+
+# A tapped starter question counts as if the guest had typed it
+if question is None and st.session_state.get("pending_question"):
+    question = st.session_state.pending_question
+    st.session_state.pending_question = None
 
 if question is not None:
     question = question.strip()
@@ -231,7 +287,7 @@ if question is not None:
     # The guard runs BEFORE the AI. A blocked message never reaches the AI.
     is_safe, reason = check_message(question)
     if not is_safe:
-        with st.chat_message("assistant"):
+        with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
             st.markdown(BLOCKED_REPLY)
             st.caption(f"Blocked by the safety filter: {reason}")
         st.session_state.messages.append({
@@ -243,7 +299,7 @@ if question is not None:
         })
         st.stop()
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
         result = {"answer": "", "tool_calls": [], "sources": [], "plans": []}
 
         # REQUIREMENT: "Include progress indicators for long operations"

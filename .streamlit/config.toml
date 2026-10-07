@@ -1,15 +1,7 @@
-# ==========================================================
-# .streamlit/config.toml
-# ==========================================================
-# Streamlit's built-in theme settings: the base colours of the app.
-# The extra café details (lamps, brick, chalkboard...) are added
-# with CSS in src/theme.py.
-# ==========================================================
-
-[theme]
+﻿[theme]
 base = "dark"
-primaryColor = "#D9A05B"               # warm brass (buttons, highlights)
-backgroundColor = "#1B130E"            # dark espresso
-secondaryBackgroundColor = "#2A1F18"   # dark wood
-textColor = "#F3E6D3"                  # cream
+primaryColor = "#FF3B3B"
+backgroundColor = "#120C0B"
+secondaryBackgroundColor = "#2A1514"
+textColor = "#F6E7DA"
 font = "serif"
