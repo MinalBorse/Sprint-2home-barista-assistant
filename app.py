@@ -6,6 +6,7 @@
 # What it does now:
 #   - a chat window (Streamlit)
 #   - QUERY TRANSLATION: rewrites the question into a better search query
+#   - STRUCTURED RETRIEVAL: filters the search by brew method
 #   - answers coffee questions using RAG on our knowledge base
 #   - shows live progress steps while it works
 #   - shows the sources and the search query it used
@@ -17,7 +18,7 @@
 #
 # REQUIREMENTS covered:
 #   - "Create an intuitive interface using Streamlit"
-#   - "Implement advanced RAG with query translation"
+#   - "Implement advanced RAG with query translation and structured retrieval"
 #   - "Show relevant context and sources"
 #   - "Include progress indicators for long operations"
 #   - "Include user input validation"
@@ -27,7 +28,8 @@
 import streamlit as st
 from src.llm import get_llm
 from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION
-from src.rag import rewrite_query, retrieve, generate_answer
+from src.rag import plan_search, retrieve, generate_answer
+from src.brew_methods import ANY
 
 
 # ----------------------------------------------------------
@@ -64,10 +66,15 @@ def validate_question(question):
     return None
 
 
-def show_search_query(search_query, question):
-    """Show what we actually searched for (only if it was rewritten)."""
+def show_search_query(search_query, question, brew_method=ANY):
+    """Show what we searched for, and the brew-method filter (if any)."""
+    parts = []
     if search_query and search_query != question:
-        st.caption(f"Searched for: {search_query}")
+        parts.append(f"Searched for: {search_query}")
+    if brew_method and brew_method != ANY:
+        parts.append(f"Filter: {brew_method} + general")
+    if parts:
+        st.caption("  ·  ".join(parts))
 
 
 def show_sources(sources):
@@ -84,7 +91,10 @@ def show_sources(sources):
             if source["section"]:
                 heading = heading + f" - {source['section']}"
             st.markdown(heading)
-            st.caption(f"Similarity {source['similarity']:.2f} - {source['source']}")
+            st.caption(
+                f"Similarity {source['similarity']:.2f} - "
+                f"{source.get('brew_method', '')} - {source['source']}"
+            )
             st.text(source["text"][:300] + "...")
             st.divider()
 
@@ -105,6 +115,8 @@ with st.sidebar:
     # Useful to compare the two, and for demos.
     use_rewrite = st.toggle("Rewrite my question before searching", value=True)
     st.caption("Turns vague or slang questions into clear search queries.")
+    use_filter = st.toggle("Filter by brew method", value=True)
+    st.caption("If you mention a brewer (V60, moka pot...), search its content first.")
 
 # Connect to the database and the model
 vector_store, llm = load_resources()
@@ -125,7 +137,11 @@ for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
         if message["role"] == "assistant":
-            show_search_query(message.get("search_query"), message.get("question"))
+            show_search_query(
+                message.get("search_query"),
+                message.get("question"),
+                message.get("brew_method", ANY),
+            )
             show_sources(message.get("sources", []))
 
 
@@ -149,33 +165,43 @@ if question is not None:
     with st.chat_message("assistant"):
         answer = ""
         search_query = question
+        brew_method = ANY
         sources = []
+        step_count = 2
 
         # REQUIREMENT: "Include progress indicators for long operations"
         # st.status is a box that shows each step as it happens.
         with st.status("Working on it...", expanded=False) as status:
             # REQUIREMENT: "Implement proper error handling"
             try:
-                # STEP 1: query translation
-                if use_rewrite:
-                    st.write("Rewriting your question...")
-                    search_query = rewrite_query(question, llm)
-                    st.write(f"Rewrote search: {search_query}")
+                # STEP 1: plan the search
+                # (query translation + structured retrieval, in one LLM call)
+                if use_rewrite or use_filter:
+                    st.write("Planning the search...")
+                    plan = plan_search(question, llm)
+                    step_count = 3
+
+                    if use_rewrite:
+                        search_query = plan["search_query"]
+                        st.write(f"Rewrote search: {search_query}")
+                    if use_filter:
+                        brew_method = plan["brew_method"]
+                        if brew_method == ANY:
+                            st.write("No brew method mentioned, searching everything")
+                        else:
+                            st.write(f"Filter: {brew_method} + general")
                 else:
                     st.write("Searching with your exact words")
 
                 # STEP 2: retrieval
-                sources = retrieve(search_query, vector_store)
+                sources = retrieve(search_query, vector_store, brew_method=brew_method)
                 st.write(f"Found {len(sources)} relevant chunks")
 
                 # STEP 3: answer
                 st.write("Writing the answer...")
                 answer = generate_answer(question, sources, llm)
 
-                if use_rewrite:
-                    status.update(label="Done in 3 steps", state="complete")
-                else:
-                    status.update(label="Done in 2 steps", state="complete")
+                status.update(label=f"Done in {step_count} steps", state="complete")
 
             except Exception as error:
                 answer = "Sorry, something went wrong while answering. Try again in a moment."
@@ -184,7 +210,7 @@ if question is not None:
                 status.update(label="Something went wrong", state="error")
 
         st.markdown(answer)
-        show_search_query(search_query, question)
+        show_search_query(search_query, question, brew_method)
         show_sources(sources)
 
     st.session_state.messages.append({
@@ -192,5 +218,6 @@ if question is not None:
         "content": answer,
         "question": question,
         "search_query": search_query,
+        "brew_method": brew_method,
         "sources": sources,
     })

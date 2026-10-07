@@ -21,6 +21,7 @@ from langchain_text_splitters import (
     MarkdownHeaderTextSplitter,
     RecursiveCharacterTextSplitter,
 )
+from src.brew_methods import detect_brew_method
 
 
 # ----------------------------------------------------------
@@ -129,6 +130,14 @@ def split_all_documents(documents):
         for chunk in chunks:
             chunk.metadata["chunk_id"] = f"{title_for_id}-{chunk_number}"
             chunk_number = chunk_number + 1
+
+            # STRUCTURED METADATA for structured retrieval:
+            # tag each chunk with the brew method it is about
+            # ("moka pot", "espresso", ... or "general")
+            chunk.metadata["brew_method"] = detect_brew_method(
+                chunk.metadata.get("title", ""),
+                chunk.metadata.get("section", ""),
+            )
 
         all_chunks.extend(chunks)
 

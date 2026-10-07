@@ -3,8 +3,10 @@
 # ==========================================================
 # Purpose: all the RAG logic in one reusable place.
 #
-#   1. REWRITE the question into a better search query  (query translation)
-#   2. RETRIEVE the most relevant chunks from Chroma
+#   1. PLAN the search: rewrite the question into a better search query
+#      (query translation) AND pick a brew-method filter
+#      (structured retrieval) - both in ONE LLM call
+#   2. RETRIEVE the most relevant chunks from Chroma, using that filter
 #   3. ANSWER using only those chunks, with sources
 #
 # Why a separate file?
@@ -13,13 +15,16 @@
 #   - the RAGAs evaluation can test RAG without the web app
 #
 # REQUIREMENTS covered:
-#   - "Implement advanced RAG with query translation"
+#   - "Implement advanced RAG with query translation and structured retrieval"
 #   - "Implement standard document retrieval with embeddings"
 #   - "Implement domain-specific prompts"
 #   - "Show relevant context and sources"
 # ==========================================================
 
 from langchain_core.prompts import ChatPromptTemplate
+from pydantic import BaseModel, Field
+
+from src.brew_methods import ANY, BREW_METHODS, GENERAL
 
 
 # ----------------------------------------------------------
@@ -30,60 +35,109 @@ MAX_SEARCH_QUERY_LENGTH = 200   # a longer rewrite is suspicious, so we don't us
 
 
 # ==========================================================
-# PART 1: QUERY TRANSLATION (rewriting the question)
+# PART 1: PLANNING THE SEARCH
+#         (query translation + structured retrieval)
 # ==========================================================
-# A domain-specific prompt: it knows the words our knowledge base uses.
-REWRITE_SYSTEM_PROMPT = """You rewrite coffee questions into short search queries for a coffee knowledge base.
 
-Rules:
-1. Output ONLY the search query, on one line. No explanation, no quotes.
-2. Use standard coffee terms. Taste problems should use words like: bitter, sour, weak, watery, strong, flat, stale, over-extracted, under-extracted.
-3. Keep any brewer or drink names: V60, pour-over, French press, moka pot, AeroPress, espresso.
-4. Translate slang or vague words. For example "meh" means flat or dull, and "stovetop thing" means moka pot.
-5. Do NOT answer the question. Only rewrite it."""
+# The SHAPE of the answer we want from the planner LLM.
+# Instead of free text, the LLM must fill in these two fields.
+# This is called "structured output". Pydantic describes the fields,
+# and the descriptions tell the LLM what to put in each one.
+class SearchPlan(BaseModel):
+    search_query: str = Field(
+        description="A short search query using standard coffee terms."
+    )
+    brew_method: str = Field(
+        description="The brew method the question is about, or 'any' if none is mentioned."
+    )
 
-rewrite_prompt = ChatPromptTemplate.from_messages([
-    ("system", REWRITE_SYSTEM_PROMPT),
+
+PLANNER_SYSTEM_PROMPT = f"""You plan searches in a coffee knowledge base.
+
+Return two things:
+1. search_query: the user's question rewritten as a short search query.
+   - Use standard coffee terms. Taste problems should use words like: bitter, sour, weak, watery, strong, flat, stale, over-extracted, under-extracted.
+   - Translate slang or vague words. For example "meh" means flat or dull, and "stovetop thing" means moka pot.
+   - Do NOT answer the question.
+2. brew_method: exactly one of: {", ".join(BREW_METHODS)}, any.
+   - Use "any" if the question doesn't mention a specific brew method.
+   - "V60", "drip" and "filter" mean pour-over. "Cafetiere" and "plunger" mean french press. "Stovetop" means moka pot."""
+
+planner_prompt = ChatPromptTemplate.from_messages([
+    ("system", PLANNER_SYSTEM_PROMPT),
     ("human", "{question}"),
 ])
 
 
-def rewrite_query(question, llm):
+def plan_search(question, llm):
     """
-    Turn the user's question into a better search query.
-    If anything goes wrong, fall back to the original question,
-    so the app still works (error handling).
+    Turn the user's question into a search plan:
+        {"search_query": "...", "brew_method": "moka pot" or "any"}
+
+    If anything goes wrong, fall back to the original question
+    with no filter, so the app still works (error handling).
     """
+    fallback_plan = {"search_query": question, "brew_method": ANY}
+
     try:
-        rewrite_chain = rewrite_prompt | llm
-        response = rewrite_chain.invoke({"question": question})
+        # with_structured_output makes the LLM fill in our SearchPlan fields
+        planner = planner_prompt | llm.with_structured_output(SearchPlan)
+        plan = planner.invoke({"question": question})
 
-        # Clean the result: remove spaces, quotes and extra lines
-        search_query = response.content.strip().strip('"').strip()
-        search_query = search_query.split("\n")[0]
+        search_query = plan.search_query.strip().strip('"').strip()
+        brew_method = plan.brew_method.strip().lower()
 
-        # Safety checks: an empty or very long rewrite is not trustworthy
+        # Validation: the search query must look reasonable
         if len(search_query) == 0 or len(search_query) > MAX_SEARCH_QUERY_LENGTH:
-            return question
+            search_query = question
 
-        return search_query
+        # Validation: the brew method must be one we actually have.
+        # Anything else (a typo, an invented method) means: no filter.
+        if brew_method not in BREW_METHODS:
+            brew_method = ANY
+
+        return {"search_query": search_query, "brew_method": brew_method}
 
     except Exception as error:
-        print("Query rewrite failed, using the original question:", error)
-        return question
+        print("Search planning failed, using the original question:", error)
+        return fallback_plan
+
+
+def rewrite_query(question, llm):
+    """
+    Only the rewritten search query (no filter).
+    Kept so older scripts like step15 still work.
+    """
+    plan = plan_search(question, llm)
+    return plan["search_query"]
 
 
 # ==========================================================
-# PART 2: RETRIEVAL
+# PART 2: RETRIEVAL (with an optional brew-method filter)
 # ==========================================================
-def retrieve(search_query, vector_store, k=TOP_K):
+def build_filter(brew_method):
+    """
+    The Chroma filter for a brew method.
+    We ALWAYS include "general" chunks too (like the troubleshooting
+    guide), because they apply to every brew method.
+    """
+    if brew_method == ANY:
+        return None
+    return {"brew_method": {"$in": [brew_method, GENERAL]}}
+
+
+def retrieve(search_query, vector_store, k=TOP_K, brew_method=ANY):
     """
     Search Chroma and return a list of sources.
     Each source is a dictionary with the chunk text and its details.
     The details come from the DATABASE, not from the AI,
     so they are always accurate.
     """
-    results = vector_store.similarity_search_with_score(search_query, k=k)
+    results = vector_store.similarity_search_with_score(
+        search_query,
+        k=k,
+        filter=build_filter(brew_method),
+    )
 
     sources = []
     for document, distance in results:
@@ -91,6 +145,7 @@ def retrieve(search_query, vector_store, k=TOP_K):
             "title": document.metadata.get("title", "unknown"),
             "section": document.metadata.get("section", ""),
             "source": document.metadata.get("source", ""),
+            "brew_method": document.metadata.get("brew_method", ""),
             "similarity": 1 - distance,     # Chroma gives distance; convert it
             "text": document.page_content,
         })
@@ -135,29 +190,37 @@ def generate_answer(question, sources, llm):
     return response.content
 
 
-def answer_with_rag(question, vector_store, llm, use_rewrite=True):
+def answer_with_rag(question, vector_store, llm, use_rewrite=True, use_filter=True):
     """
-    The full RAG flow for one question, built from the 3 steps above.
+    The full RAG flow for one question, built from the steps above.
+
+    use_rewrite -> query translation on/off
+    use_filter  -> structured retrieval (brew-method filter) on/off
 
     Returns a dictionary:
       "answer"       -> the AI's answer
       "search_query" -> what we actually searched for
+      "brew_method"  -> the filter we used ("any" = no filter)
       "sources"      -> the chunks the answer was based on
     """
-    # 1. Rewrite the question into a search query (or keep it as it is)
+    # 1. Plan the search (or keep the question as it is)
     if use_rewrite:
-        search_query = rewrite_query(question, llm)
+        plan = plan_search(question, llm)
     else:
-        search_query = question
+        plan = {"search_query": question, "brew_method": ANY}
 
-    # 2. Retrieve with the SEARCH QUERY
-    sources = retrieve(search_query, vector_store)
+    if not use_filter:
+        plan["brew_method"] = ANY
+
+    # 2. Retrieve with the SEARCH QUERY and the FILTER
+    sources = retrieve(plan["search_query"], vector_store, brew_method=plan["brew_method"])
 
     # 3. Answer the ORIGINAL QUESTION, using the retrieved chunks
     answer = generate_answer(question, sources, llm)
 
     return {
         "answer": answer,
-        "search_query": search_query,
+        "search_query": plan["search_query"],
+        "brew_method": plan["brew_method"],
         "sources": sources,
     }
