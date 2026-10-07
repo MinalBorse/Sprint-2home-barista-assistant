@@ -1,0 +1,13 @@
+# Secrets — never upload!
+.env
+
+# Python environment and cache
+.venv/
+__pycache__/
+*.pyc
+
+# Vector database (we'll create it later; it can be rebuilt)
+chroma_db/
+
+# VS Code settings
+.vscode/
