@@ -14,6 +14,8 @@
 #   - shows the search plan and the sources
 #   - progress indicator while the agent works
 #   - input validation and error handling
+#   - a SECURITY GUARD that blocks prompt-injection attempts
+#     before they reach the AI
 #
 # Run it with:   streamlit run app.py
 #
@@ -25,6 +27,7 @@
 #   - "Include user input validation"
 #   - "Implement proper error handling"
 #   - "Provide detailed, context-aware responses" (memory)
+#   - "Add relevant security measures for your domain" (input guard)
 # ==========================================================
 
 import uuid
@@ -34,6 +37,7 @@ import streamlit as st
 from src.agent import ask_agent, build_agent
 from src.brew_methods import ANY
 from src.llm import get_llm
+from src.security import BLOCKED_REPLY, check_message
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 
@@ -217,6 +221,22 @@ if question is not None:
     with st.chat_message("user"):
         st.markdown(question)
     st.session_state.messages.append({"role": "user", "content": question})
+
+    # REQUIREMENT: "Add relevant security measures for your domain"
+    # The guard runs BEFORE the AI. A blocked message never reaches the AI.
+    is_safe, reason = check_message(question)
+    if not is_safe:
+        with st.chat_message("assistant"):
+            st.markdown(BLOCKED_REPLY)
+            st.caption(f"Blocked by the safety filter: {reason}")
+        st.session_state.messages.append({
+            "role": "assistant",
+            "content": BLOCKED_REPLY,
+            "tool_calls": [],
+            "sources": [],
+            "plans": [],
+        })
+        st.stop()
 
     with st.chat_message("assistant"):
         result = {"answer": "", "tool_calls": [], "sources": [], "plans": []}
