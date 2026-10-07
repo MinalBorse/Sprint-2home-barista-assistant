@@ -16,8 +16,10 @@
 # REQUIREMENT: "Use chunking strategies"
 # ==========================================================
 
+from src.chunk_tags import tag_topics
 from src.document_loader import load_all_documents
 from src.document_splitter import split_all_documents
+from src.llm import get_llm
 from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION
 
 
@@ -37,6 +39,21 @@ print()
 print("STEP 2 - Splitting")
 chunks = split_all_documents(documents)
 print(f"   {len(documents)} documents -> {len(chunks)} chunks")
+print()
+
+# ----------------------------------------------------------
+# STEP 2b: TAG each chunk with its topic (the LLM decides)
+# ----------------------------------------------------------
+# Used by structured retrieval, for example to hide history and trivia.
+print("STEP 2b - Tagging topics with the LLM (about a minute)...")
+tag_topics(chunks, get_llm(temperature=0))
+
+topic_counts = {}
+for chunk in chunks:
+    topic = chunk.metadata["topic"]
+    topic_counts[topic] = topic_counts.get(topic, 0) + 1
+for topic, count in topic_counts.items():
+    print(f"   {topic:<20} {count:>3} chunks")
 print()
 
 # Safety check: stop if something went badly wrong,

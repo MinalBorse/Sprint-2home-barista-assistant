@@ -38,7 +38,7 @@ from src.agent import UserPreferences, ask_agent, build_agent
 from src.brew_methods import ANY
 from src.llm import get_llm
 from src.security import BLOCKED_REPLY, check_message
-from src.theme import apply_cafe_theme, show_welcome_banner
+from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 
@@ -57,7 +57,8 @@ STARTER_QUESTIONS = [
     "How do I brew with a moka pot?",
 ]
 
-ASSISTANT_AVATAR = "☕"
+# The barista's avatar: the gold coffee-bean emblem (assets/barista_avatar.png)
+ASSISTANT_AVATAR = AVATAR_IMAGE
 
 # "My brewer" choices: the label shown in the sidebar -> the brew_method
 # stored on our chunks (see src/brew_methods.py)
@@ -72,11 +73,12 @@ BREWER_CHOICES = {
 }
 
 # Friendly names and icons for each tool, shown in the UI
+# (":material/...:" are Streamlit's built-in, clean line icons)
 TOOL_LABELS = {
-    "search_coffee_knowledge": ("🔎", "Searched the coffee knowledge base"),
-    "brew_ratio_calculator": ("💧", "Brew ratio calculator"),
-    "caffeine_estimator": ("⚡", "Caffeine estimator"),
-    "cost_per_cup": ("💶", "Cost per cup"),
+    "search_coffee_knowledge": (":material/menu_book:", "Searched the coffee knowledge base"),
+    "brew_ratio_calculator": (":material/water_drop:", "Brew ratio calculator"),
+    "caffeine_estimator": (":material/bolt:", "Caffeine estimator"),
+    "cost_per_cup": (":material/payments:", "Cost per cup"),
 }
 
 
@@ -125,7 +127,7 @@ def show_tool_results(tool_calls):
     for call in tool_calls:
         if call["name"] == "search_coffee_knowledge":
             continue
-        icon, label = TOOL_LABELS.get(call["name"], ("🛠️", call["name"]))
+        icon, label = TOOL_LABELS.get(call["name"], (":material/build:", call["name"]))
         st.success(
             f"**{label}**  \n"
             f"Inputs: {format_inputs(call['args'])}  \n"
@@ -201,8 +203,8 @@ def show_barista_greeting(show_buttons):
     """
     with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
         st.markdown(
-            "Hi, welcome to **R Café**! ☕ What are we brewing today? "
-            "Ask me anything about coffee, or tap one of these to get started:"
+            "Good evening, and welcome to **R Café**. What shall we brew today? "
+            "Ask me anything about coffee, or choose one of these to begin:"
         )
         if not show_buttons:
             return
@@ -228,7 +230,7 @@ def start_new_conversation():
 # ==========================================================
 # The page
 # ==========================================================
-st.set_page_config(page_title="R Café · Home Barista Assistant", page_icon="☕")
+st.set_page_config(page_title="R Café · Home Barista Assistant", page_icon=AVATAR_IMAGE)
 
 # The R Café look (pure CSS and SVG, no images) - see src/theme.py
 apply_cafe_theme()
@@ -256,6 +258,7 @@ if "thread_id" not in st.session_state:
 # Sidebar
 # ----------------------------------------------------------
 with st.sidebar:
+    show_sidebar_brand()
     st.header("Conversation")
     st.button("New conversation", on_click=start_new_conversation)
     st.caption("The assistant remembers this conversation, so follow-up questions work.")
@@ -360,7 +363,7 @@ if question is not None:
 
                 # List each tool the agent used, inside the status box
                 for call in result["tool_calls"]:
-                    icon, label = TOOL_LABELS.get(call["name"], ("🛠️", call["name"]))
+                    icon, label = TOOL_LABELS.get(call["name"], (":material/build:", call["name"]))
                     st.write(f"{icon} {label}")
 
                 number_of_tools = len(result["tool_calls"])
