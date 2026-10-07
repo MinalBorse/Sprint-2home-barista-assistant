@@ -22,6 +22,7 @@ from langchain_text_splitters import (
     RecursiveCharacterTextSplitter,
 )
 from src.brew_methods import detect_brew_method
+from src.chunk_tags import detect_taste_problem
 
 
 # ----------------------------------------------------------
@@ -137,6 +138,12 @@ def split_all_documents(documents):
             chunk.metadata["brew_method"] = detect_brew_method(
                 chunk.metadata.get("title", ""),
                 chunk.metadata.get("section", ""),
+            )
+
+            # ...and with the taste problem its section is about
+            # ("bitter", "sour", ... or "none")
+            chunk.metadata["taste_problem"] = detect_taste_problem(
+                chunk.metadata.get("section", "")
             )
 
         all_chunks.extend(chunks)

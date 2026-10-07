@@ -148,6 +148,13 @@ def show_search_plans(plans):
         if plan.get("trusted_only"):
             text = text + "  ·  Trusted guides only"
 
+        if plan.get("hide_history"):
+            text = text + "  ·  History hidden"
+
+        taste_problem = plan.get("taste_problem", "none")
+        if taste_problem != "none":
+            text = text + f"  ·  Taste problem: {taste_problem}"
+
         st.caption(text)
 
 
@@ -260,6 +267,14 @@ with st.sidebar:
     st.caption("Questions that don't name a brewer will focus on yours.")
     trusted_only = st.toggle("Trusted guides only", value=False)
     st.caption("Use only R Café's own checked guides, not Wikipedia.")
+    hide_history = st.toggle("Hide history and trivia", value=True)
+    st.caption("Practical tips only. Ask about history and it's shown anyway.")
+
+    st.header("Answer style")
+    # These change HOW answers are written, not which notes are searched
+    experience = st.radio("Experience", ["Beginner", "Enthusiast"], horizontal=True)
+    units = st.radio("Units", ["Metric", "Imperial"], horizontal=True)
+    length = st.radio("Answer length", ["Short", "Detailed"], horizontal=True)
 
     st.header("On the menu tonight")
     st.markdown(
@@ -336,6 +351,10 @@ if question is not None:
                 preferences = UserPreferences(
                     brewer=BREWER_CHOICES[brewer_label],
                     trusted_only=trusted_only,
+                    hide_history=hide_history,
+                    experience=experience.lower(),
+                    units=units.lower(),
+                    length=length.lower(),
                 )
                 result = ask_agent(agent, question, st.session_state.thread_id, preferences)
 
