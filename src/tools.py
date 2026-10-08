@@ -13,7 +13,7 @@
 #
 # REQUIREMENT: "Implement at least 3 different tool calls"
 # REQUIREMENT: "Functions should be relevant to your domain"
-#   Tool 1: brew_ratio_calculator  -> water needed for a coffee dose
+#   Tool 1: brew_ratio_calculator  -> water for a coffee dose, or coffee for an amount of water
 #   Tool 2: caffeine_estimator     -> caffeine in a drink + health note
 #   Tool 3: cost_per_cup           -> how much each cup costs
 #
@@ -22,33 +22,52 @@
 #   instead of crashing. The AI can read the error and explain it.
 # ==========================================================
 
+from typing import Optional
+
 from langchain_core.tools import tool
 
 
 # ==========================================================
-# TOOL 1: brew_ratio_calculator
+# TOOL 1: brew_ratio_calculator  (works in BOTH directions)
 # ==========================================================
+#   coffee -> water: "How much water for 18 g of coffee?"
+#   water -> coffee: "I want 300 ml of coffee, how much coffee do I use?"
+#
+# Why both? Testing with realistic questions showed that users often
+# start from the amount they want to DRINK, not from the coffee dose.
+# Without the second direction, the AI would have to do the division
+# itself, which our rules forbid (tools do the maths, not the AI).
+
 MIN_COFFEE_GRAMS = 1       # less than 1 g of coffee makes no sense
 MAX_COFFEE_GRAMS = 1000    # more than 1 kg is not a home brew
+MIN_WATER_ML = 10          # less than 10 ml is not a drink
+MAX_WATER_ML = 16000       # 16 litres = a very big party
 MIN_RATIO = 1              # 1:1 would be extremely strong
 MAX_RATIO = 30             # 1:30 would be extremely weak
 DEFAULT_RATIO = 16         # 1:16 is a common, balanced ratio
 
 
 @tool
-def brew_ratio_calculator(coffee_grams: float, ratio: float = DEFAULT_RATIO) -> str:
-    """Calculate how much water to use for a given amount of ground coffee.
-    Use this when the user asks how much water they need for brewing.
+def brew_ratio_calculator(
+    coffee_grams: Optional[float] = None,
+    water_ml: Optional[float] = None,
+    ratio: float = DEFAULT_RATIO,
+) -> str:
+    """Calculate a brew recipe from a coffee-to-water ratio. Works both ways:
+    - give coffee_grams to get how much WATER to use
+    - give water_ml to get how much COFFEE to use
+    Give exactly ONE of coffee_grams or water_ml.
+    Use this when the user asks how much water or how much coffee they need.
 
     coffee_grams: amount of ground coffee in grams, for example 18
+    water_ml: amount of water (or coffee to make) in millilitres, for example 300
     ratio: water-to-coffee ratio, for example 16 means 1:16
     """
-    # ---- Step 1: check the coffee amount ----
-    if coffee_grams < MIN_COFFEE_GRAMS or coffee_grams > MAX_COFFEE_GRAMS:
-        return (
-            f"Error: coffee amount must be between {MIN_COFFEE_GRAMS} and "
-            f"{MAX_COFFEE_GRAMS} grams. You sent {coffee_grams} g."
-        )
+    # ---- Step 1: exactly one amount must be given ----
+    if coffee_grams is None and water_ml is None:
+        return "Error: give either coffee_grams (to get the water) or water_ml (to get the coffee)."
+    if coffee_grams is not None and water_ml is not None:
+        return "Error: give only ONE of coffee_grams or water_ml, not both."
 
     # ---- Step 2: check the ratio ----
     if ratio < MIN_RATIO or ratio > MAX_RATIO:
@@ -57,11 +76,30 @@ def brew_ratio_calculator(coffee_grams: float, ratio: float = DEFAULT_RATIO) -> 
             f"You sent {ratio}. Example: for 1:16, send 16."
         )
 
-    # ---- Step 3: calculate and answer ----
-    water_grams = coffee_grams * ratio
+    # ---- Step 3a: coffee -> water ----
+    if coffee_grams is not None:
+        if coffee_grams < MIN_COFFEE_GRAMS or coffee_grams > MAX_COFFEE_GRAMS:
+            return (
+                f"Error: coffee amount must be between {MIN_COFFEE_GRAMS} and "
+                f"{MAX_COFFEE_GRAMS} grams. You sent {coffee_grams} g."
+            )
+        water_grams = coffee_grams * ratio
+        return (
+            f"Use {water_grams:.0f} g of water for {coffee_grams:g} g of coffee "
+            f"(ratio 1:{ratio:g})."
+        )
+
+    # ---- Step 3b: water -> coffee ----
+    if water_ml < MIN_WATER_ML or water_ml > MAX_WATER_ML:
+        return (
+            f"Error: water amount must be between {MIN_WATER_ML} and "
+            f"{MAX_WATER_ML} ml. You sent {water_ml} ml."
+        )
+    coffee_needed = water_ml / ratio
     return (
-        f"Use {water_grams:.0f} g of water for {coffee_grams:g} g of coffee "
-        f"(ratio 1:{ratio:g})."
+        f"Use about {coffee_needed:.1f} g of coffee for {water_ml:g} ml of water "
+        f"(ratio 1:{ratio:g}). The grounds soak up some water, so you'll get "
+        f"slightly less than {water_ml:g} ml in the cup."
     )
 
 

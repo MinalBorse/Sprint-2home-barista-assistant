@@ -39,6 +39,10 @@ def run_test(test_name, tool_function, tool_inputs, expected_text):
 print("========== TOOL 1: brew_ratio_calculator ==========\n")
 run_test("18 g at 1:16", brew_ratio_calculator, {"coffee_grams": 18, "ratio": 16}, "288 g of water")
 run_test("bad ratio (116)", brew_ratio_calculator, {"coffee_grams": 18, "ratio": 116}, "Error")
+run_test("300 ml of water -> coffee", brew_ratio_calculator, {"water_ml": 300}, "18.8 g of coffee")
+run_test("500 ml at 1:15 -> coffee", brew_ratio_calculator, {"water_ml": 500, "ratio": 15}, "33.3 g of coffee")
+run_test("both amounts given", brew_ratio_calculator, {"coffee_grams": 18, "water_ml": 300}, "Error")
+run_test("no amount given", brew_ratio_calculator, {}, "Error")
 
 print("========== TOOL 2: caffeine_estimator ==========\n")
 run_test("250 ml pour-over", caffeine_estimator, {"drink": "pour-over", "size_ml": 250}, "100 mg")

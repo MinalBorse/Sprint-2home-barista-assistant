@@ -3,10 +3,11 @@ from src.llm import get_llm
 
 llm = get_llm()
 
-# Lesson 2: a conversation is a list of messages with roles
 messages = [
-    SystemMessage("You are a friendly home barista assistant. Only answer coffee questions. Keep answers short."),
-    HumanMessage("What's the difference between a V60 and a French press?"),
+    SystemMessage("You are a friendly home barista assistant. Keep answers short."),
+    HumanMessage("Which brewer did I say I own?"),
 ]
-response = llm.invoke(messages)   # response is an AIMessage
-print(response.content)           # .content = the text
+
+response = llm.invoke(messages)
+print(response.content)
+
