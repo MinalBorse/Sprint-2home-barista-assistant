@@ -28,6 +28,7 @@
 
 import re
 from pydantic import BaseModel, Field
+from langchain_core.messages import HumanMessage, SystemMessage
 
 # ----------------------------------------------------------
 # Attack patterns
@@ -130,3 +131,46 @@ def check_message(message):
             return False, reason
 
     return True, ""
+
+def llm_check_message(message, llm):
+    """
+    The second, smarter check: ask an LLM whether the message is an attack.
+
+    llm: the chat model to use (passed in by the app).
+
+    Returns the same shape as check_message():
+      (True, "")       -> the message is fine
+      (False, reason)  -> the message looks like a prompt injection
+    """
+    try:
+        # 1. Ask the LLM to fill in the GuardDecision form
+        guard = llm.with_structured_output(GuardDecision)
+        decision = guard.invoke([
+            SystemMessage(GUARD_SYSTEM_PROMPT),   # the rules: how to judge
+            HumanMessage(message),                # the message to judge
+        ])
+
+        # 2. Clean up the answer (lowercase, no extra spaces)
+        category = decision.category.strip().lower()
+
+        # 3. Never trust the LLM blindly: the category must be one we know.
+        #    Anything unexpected is treated as safe, and logged.
+        if category not in GUARD_CATEGORIES:
+            print(f"[SECURITY] LLM guard gave an unknown category: {category}")
+            return True, ""
+
+        # 4. Only prompt injections are blocked
+        if category == "prompt_injection":
+            reason = f"LLM guard: {decision.reason}"
+            print(f"[SECURITY] Blocked message ({reason}): {message[:80]}")
+            return False, reason
+
+        # "safe" and "off_topic" are both allowed through
+        return True, ""
+
+    except Exception as error:
+        # FAIL OPEN: if the guard itself fails (for example, no internet),
+        # we let the message through. The pattern guard has already run,
+        # and the agent's own safety rules still apply.
+        print(f"[SECURITY] LLM guard failed, allowing the message: {error}")
+        return True, ""
