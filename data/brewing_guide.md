@@ -100,6 +100,25 @@ Filter the coffee after steeping. Dilute the concentrate with water or milk, abo
 | Moka pot | Fine | Fill basket | Hot water in base | Until it sputters |
 | Espresso | Fine | 1:2 | 90-96 C | 25-30 s |
 | Cold brew | Coarse | 1:8 | Cold or room temperature | 12-24 h |
+
+## Siphon coffee (vacuum pot or syphon)
+
+A siphon, also called a vacuum pot, brews coffee using vapour pressure and a vacuum. It looks like a science experiment and makes a very clean, aromatic cup.
+
+- Grind: medium, a little finer than for a French press.
+- Ratio: about 1:15, for example 20 grams of coffee for 300 ml of water.
+- Water temperature: about 90 to 95 degrees Celsius in the top chamber.
+- Brew time: about 1 minute of steeping, 3 to 4 minutes in total.
+
+Steps:
+1. Fill the bottom bowl with hot water and fit the top chamber with its filter.
+2. Heat the bottom. Vapour pressure pushes the water up into the top chamber.
+3. Add the coffee to the top chamber and stir gently.
+4. Let it steep for about 1 minute, then turn off the heat.
+5. As the bottom bowl cools, a vacuum pulls the coffee down through the filter.
+
+If it tastes sour, grind finer or steep a little longer. If it tastes bitter, steep for less time.
+
 ## Turkish coffee (cezve or ibrik)
 
 Turkish coffee is brewed by heating very finely ground coffee with water in a small pot called a cezve or ibrik. It is served unfiltered, so the grounds settle at the bottom of the cup.
