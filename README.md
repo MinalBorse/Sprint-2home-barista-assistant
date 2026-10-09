@@ -164,9 +164,10 @@ Security is built in layers, so if one fails, another catches it:
 1. **Secrets** live in `.env`, which `.gitignore` keeps out of the repository.
 2. **Trusted sources only** (`src/knowledge_sources.py`), which protects against indirect prompt injection through documents.
 3. **Input validation:** questions over 500 characters are rejected; every tool checks its inputs and returns a friendly error instead of crashing.
-4. **Input guard** (`src/security.py`): known prompt-injection patterns are blocked in plain Python before the message reaches the AI, and each block is logged.
-5. **Agent safety rules:** coffee topics only, document text is treated as data rather than instructions, and the system prompt is never revealed.
-6. **Domain safety:** caffeine estimates are labelled as estimates and always come with a health note (single-dose and daily guidance, lower guidance in pregnancy, not medical advice).
+4. **Pattern guard** (`src/security.py`): known prompt-injection phrasings are blocked in plain Python, instantly and for free, before the message reaches the AI. Each block is logged.
+5. **LLM guard** (`src/security.py`): messages that pass the pattern guard are checked by a separate model (temperature 0) that understands meaning, so it also catches reworded attacks, role-play tricks and other languages. It fails open if the check itself errors, since the other layers still apply. In testing on 7 unseen attacks and 6 tricky normal messages, it blocked all 7 (the pattern guard caught none of them) with no false alarms.
+6. **Agent safety rules:** coffee topics only, document text is treated as data rather than instructions, and the system prompt is never revealed.
+7. **Domain safety:** caffeine estimates are labelled as estimates and always come with a health note (single-dose and daily guidance, lower guidance in pregnancy, not medical advice).
 
 ---
 
