@@ -37,7 +37,7 @@ import streamlit as st
 from src.agent import UserPreferences, ask_agent, build_agent
 from src.brew_methods import ANY, BREW_METHODS
 from src.llm import get_llm
-from src.security import BLOCKED_REPLY, check_message
+from src.security import BLOCKED_REPLY, check_message, llm_check_message
 from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
@@ -102,8 +102,13 @@ def load_resources():
     vector_store = get_vector_store(KNOWLEDGE_BASE_COLLECTION)
     llm = get_llm()
     agent = build_agent(vector_store, llm)
-    return vector_store, agent
 
+    # A separate model for the LLM security guard.
+    # temperature=0 makes its decisions as consistent as possible:
+    # the same message should always get the same answer.
+    guard_llm = get_llm(temperature=0)
+
+    return vector_store, agent, guard_llm
 
 # ==========================================================
 # Helper functions
@@ -246,8 +251,7 @@ st.set_page_config(page_title="R Café · Home Barista Assistant", page_icon=AVA
 apply_cafe_theme()
 show_welcome_banner()
 
-# Connect to the database, model and agent
-vector_store, agent = load_resources()
+vector_store, agent, guard_llm = load_resources()
 
 # Error handling: stop with a clear message if the knowledge base is empty
 if vector_store._collection.count() == 0:
@@ -340,7 +344,15 @@ if question is not None:
 
     # REQUIREMENT: "Add relevant security measures for your domain"
     # The guard runs BEFORE the AI. A blocked message never reaches the AI.
+        # Check 1: the pattern guard (free and instant)
     is_safe, reason = check_message(question)
+
+    # Check 2: the LLM guard (smarter, about a second).
+    # It only runs if the pattern guard found nothing, so obvious
+    # attacks are blocked for free, without calling the LLM.
+    if is_safe:
+        with st.spinner("Checking your message..."):
+            is_safe, reason = llm_check_message(question, guard_llm)
     if not is_safe:
         with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
             st.markdown(BLOCKED_REPLY)
