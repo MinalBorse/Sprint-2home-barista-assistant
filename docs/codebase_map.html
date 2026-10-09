@@ -65,7 +65,7 @@ footer{margin-top:32px;color:var(--muted);font-size:12.5px}
 
 <h2>1 · Files you run <small>entry points</small></h2>
 <div class="grid">
-<div class="card e"><p class="fn">app.py</p><p class="role">The R Café web app: chat, sidebar preferences, tool cards, sources, security guard.</p>
+<div class="card e"><p class="fn">app.py</p><p class="role">The R Café web app: chat, sidebar preferences, tool cards, sources, and two security guards (patterns first, then the LLM guard).</p>
 <p class="lab">Uses</p><div class="chips"><span class="chip">agent.py</span><span class="chip">security.py</span><span class="chip">theme.py</span><span class="chip">llm.py</span><span class="chip">vector_store.py</span><span class="chip">brew_methods.py</span><span class="chip">.streamlit/config.toml</span></div>
 <p class="lab">Run with</p><div class="chips"><span class="chip">streamlit run app.py</span></div></div>
 <div class="card e"><p class="fn">build_knowledge_base.py</p><p class="role">Load, split, label, tag topics, embed and store the knowledge base.</p>
@@ -87,8 +87,8 @@ footer{margin-top:32px;color:var(--muted);font-size:12.5px}
 <div class="card a"><p class="fn">tools.py</p><p class="role">3 calculators: water or coffee (both ways), caffeine with health note, cost per cup.</p>
 <p class="lab">Uses</p><span class="none">nothing from src</span>
 <p class="lab">Used by</p><div class="chips"><span class="chip">agent.py</span></div></div>
-<div class="card a"><p class="fn">security.py</p><p class="role">Input guard: blocks prompt-injection patterns before the AI sees them.</p>
-<p class="lab">Uses</p><span class="none">nothing from src</span>
+<div class="card a"><p class="fn">security.py</p><p class="role">Two input guards, run before the agent: a pattern guard (free, instant) and an LLM guard that understands meaning (catches reworded, role-play and foreign-language attacks; fails open).</p>
+<p class="lab">Uses</p><span class="none">nothing from src (the guard LLM is passed in by app.py)</span>
 <p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span></div></div>
 <div class="card a"><p class="fn">theme.py</p><p class="role">The elegant R Café look: CSS, welcome card artwork, logo, background.</p>
 <p class="lab">Uses</p><div class="chips"><span class="chip">assets/</span></div>
@@ -142,14 +142,14 @@ footer{margin-top:32px;color:var(--muted);font-size:12.5px}
 <h2>6 · Not used by the app <small>learning and checking</small></h2>
 <div class="grid">
 <div class="card x"><p class="fn">learning/</p><p class="role">step01 to step14: one concept per script. Run with python -m learning.step01_hello</p></div>
-<div class="card x"><p class="fn">tests/</p><p class="role">step09, step15 to step19: evaluations and tests. Run with python -m tests.step17_tools</p></div>
+<div class="card x"><p class="fn">tests/</p><p class="role">step09, step15 to step19: evaluations and tests. step19 checks both security guards together (7 of 7 unseen attacks blocked, 0 false alarms). Run with python -m tests.step19_security</p></div>
 <div class="card x"><p class="fn">src/sample_notes.py</p><p class="role">5 practice notes, used only by the learning scripts.</p></div>
 </div>
 
 <h2>Three patterns to remember</h2>
 <div class="patterns">
 <div class="pat"><b>Shared doorways</b>llm.py, vector_store.py and embeddings.py hold their settings in one place, so the build, the app and the evaluation can never disagree.</div>
-<div class="pat"><b>Passed in, not imported</b>rag.py and chunk_tags.py receive the LLM and the database as arguments, so the same code works in the app and in evaluate_rag.py.</div>
+<div class="pat"><b>Passed in, not imported</b>rag.py, chunk_tags.py and security.py receive the LLM (and rag.py the database) as arguments, so the same code works in the app, the build, the evaluation and the tests.</div>
 <div class="pat"><b>Simple files depend on nothing</b>tools.py, security.py, brew_methods.py and knowledge_sources.py use nothing else from src, so they are easy to test alone.</div>
 </div>
 
