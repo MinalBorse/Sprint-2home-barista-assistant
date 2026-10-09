@@ -31,10 +31,21 @@ GENERAL = "general"     # chunks that apply to every method
 ANY = "any"             # the planner's answer when no method is mentioned
 
 
-# Words that reveal each method.
+#07/10/2026 Words that reveal each method.
 # ORDER MATTERS: "moka pot" comes before "espresso", because our
 # moka pot section is called "Moka pot (stovetop espresso maker)".
+#09/10/2026 ORDER MATTERS: the first matching method wins, so more specific methods
+# come before methods whose words they contain:
+#   "Moka pot (stovetop espresso maker)"  -> moka pot must come before espresso
+#   "South Indian filter coffee"          -> before pour-over ("filter coffee")
+#   "Vietnamese phin (drip filter)"       -> before pour-over ("drip")
+#   "Stovetop percolator"                 -> before moka pot ("stovetop")
 BREW_METHOD_KEYWORDS = [
+    ("south indian filter", ["south indian", "filter kaapi", "kaapi"]),
+    ("vietnamese phin", ["vietnamese", "phin"]),
+    ("turkish coffee", ["turkish", "cezve", "ibrik"]),
+    ("siphon", ["siphon", "syphon", "vacuum pot", "vacuum brewer"]),
+    ("percolator", ["percolator"]),
     ("moka pot", ["moka", "stovetop", "brikka", "bialetti"]),
     ("cold brew", ["cold brew"]),
     ("aeropress", ["aeropress"]),
