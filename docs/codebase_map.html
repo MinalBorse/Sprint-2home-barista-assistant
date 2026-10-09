@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>R Café: codebase map</title>
+<style>
+:root{
+  --bg:#FAF7F2;--card:#FFFFFF;--chip:#F3EEE6;--text:#2A211B;--muted:#7A6A5D;--line:#E4DBCF;
+  --entry:#3C6FD1;--app:#2E8B57;--pipe:#B7791F;--found:#7B4FB8;--data:#9A8F84;--learn:#C9C1B6;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#17120F;--card:#211A15;--chip:#2C231D;--text:#F2EBDD;--muted:#B5A595;--line:#3A2F27;
+    --entry:#7FA6F0;--app:#6CC495;--pipe:#E3B15A;--found:#B79BE6;--data:#9A8F84;--learn:#5C524A;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#17120F;--card:#211A15;--chip:#2C231D;--text:#F2EBDD;--muted:#B5A595;--line:#3A2F27;
+  --entry:#7FA6F0;--app:#6CC495;--pipe:#E3B15A;--found:#B79BE6;--data:#9A8F84;--learn:#5C524A;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5}
+main{max-width:1100px;margin:0 auto;padding:28px 20px 48px}
+h1{font-family:Georgia,"Times New Roman",serif;font-weight:600;font-size:2rem;margin:0}
+.sub{color:var(--muted);margin:4px 0 24px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:8px}
+.flow span.s{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(--chip);border-radius:6px;padding:3px 8px}
+.flow span.a{color:var(--muted)}
+.flownote{color:var(--muted);font-size:13px;margin:0 0 24px}
+h2{font-size:1.05rem;margin:28px 0 10px;display:flex;align-items:baseline;gap:10px}
+h2 small{font-weight:400;font-size:.85rem;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--k);border-radius:10px;padding:12px 14px}
+.fn{font-family:ui-monospace,Consolas,monospace;font-size:14px;font-weight:600;margin:0 0 4px}
+.role{font-size:13.5px;color:var(--muted);margin:0 0 8px}
+.lab{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:8px 0 4px}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--chip);border-radius:5px;padding:2px 7px}
+.none{font-size:13px;color:var(--muted)}
+.e{--k:var(--entry)}.a{--k:var(--app)}.p{--k:var(--pipe)}.f{--k:var(--found)}.d{--k:var(--data)}.x{--k:var(--learn)}
+.patterns{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.pat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-size:14px}
+.pat b{display:block;margin-bottom:4px}
+footer{margin-top:32px;color:var(--muted);font-size:12.5px}
+</style>
+</head>
+<body>
+<main>
+<h1>R Café: codebase map</h1>
+<p class="sub">Every code file, what it does, which files it uses, and which files use it.</p>
+
+<div class="flow">
+<span class="s">data/ + Wikipedia</span><span class="a">→</span>
+<span class="s">build_knowledge_base.py</span><span class="a">→</span>
+<span class="s">chroma_db/ (160 chunks)</span><span class="a">→</span>
+<span class="s">app.py</span><span class="a">→</span>
+<span class="s">agent.py</span><span class="a">→</span>
+<span class="s">rag.py + tools.py</span><span class="a">→</span>
+<span class="s">answer</span>
+</div>
+<p class="flownote">The build writes chroma_db/ once; the app reads it on every question. That folder is the bridge between the two halves.</p>
+
+<h2>1 · Files you run <small>entry points</small></h2>
+<div class="grid">
+<div class="card e"><p class="fn">app.py</p><p class="role">The R Café web app: chat, sidebar preferences, tool cards, sources, security guard.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">agent.py</span><span class="chip">security.py</span><span class="chip">theme.py</span><span class="chip">llm.py</span><span class="chip">vector_store.py</span><span class="chip">brew_methods.py</span><span class="chip">.streamlit/config.toml</span></div>
+<p class="lab">Run with</p><div class="chips"><span class="chip">streamlit run app.py</span></div></div>
+<div class="card e"><p class="fn">build_knowledge_base.py</p><p class="role">Load, split, label, tag topics, embed and store the knowledge base.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">document_loader.py</span><span class="chip">document_splitter.py</span><span class="chip">chunk_tags.py</span><span class="chip">llm.py</span><span class="chip">vector_store.py</span></div>
+<p class="lab">Writes</p><div class="chips"><span class="chip">chroma_db/</span></div></div>
+<div class="card e"><p class="fn">evaluate_rag.py</p><p class="role">Scores the RAG pipeline with RAGAs, with and without query rewriting.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">rag.py</span><span class="chip">eval_test_set.py</span><span class="chip">llm.py</span><span class="chip">vector_store.py</span></div>
+<p class="lab">Writes</p><div class="chips"><span class="chip">eval_results/</span></div></div>
+</div>
+
+<h2>2 · App logic <small>src/, used while chatting</small></h2>
+<div class="grid">
+<div class="card a"><p class="fn">agent.py</p><p class="role">The agent: 4 tools, memory (InMemorySaver), personalised system prompt, user preferences.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">rag.py</span><span class="chip">tools.py</span><span class="chip">brew_methods.py</span><span class="chip">chunk_tags.py</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span></div></div>
+<div class="card a"><p class="fn">rag.py</p><p class="role">Plan the search (query translation + filters), retrieve with filters and taste boost, write grounded answers.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">brew_methods.py</span><span class="chip">chunk_tags.py</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">agent.py</span><span class="chip">evaluate_rag.py</span></div></div>
+<div class="card a"><p class="fn">tools.py</p><p class="role">3 calculators: water or coffee (both ways), caffeine with health note, cost per cup.</p>
+<p class="lab">Uses</p><span class="none">nothing from src</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">agent.py</span></div></div>
+<div class="card a"><p class="fn">security.py</p><p class="role">Input guard: blocks prompt-injection patterns before the AI sees them.</p>
+<p class="lab">Uses</p><span class="none">nothing from src</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span></div></div>
+<div class="card a"><p class="fn">theme.py</p><p class="role">The elegant R Café look: CSS, welcome card artwork, logo, background.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">assets/</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span></div></div>
+</div>
+
+<h2>3 · Knowledge base pipeline <small>src/, used by the build</small></h2>
+<div class="grid">
+<div class="card p"><p class="fn">document_loader.py</p><p class="role">Load the guides and Wikipedia pages, and clean the text.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">knowledge_sources.py</span><span class="chip">data/</span><span class="chip">.env</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">build_knowledge_base.py</span></div></div>
+<div class="card p"><p class="fn">knowledge_sources.py</p><p class="role">The trusted list: the data/ folder and 6 Wikipedia URLs.</p>
+<p class="lab">Uses</p><span class="none">nothing</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">document_loader.py</span></div></div>
+<div class="card p"><p class="fn">document_splitter.py</p><p class="role">Split into chunks; add ids, brew method and taste problem labels.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">brew_methods.py</span><span class="chip">chunk_tags.py</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">build_knowledge_base.py</span></div></div>
+<div class="card p"><p class="fn">chunk_tags.py</p><p class="role">Taste problem and topic labels; LLM topic tagging during the build.</p>
+<p class="lab">Uses</p><span class="none">nothing (the LLM is passed in)</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">build_knowledge_base.py</span><span class="chip">document_splitter.py</span><span class="chip">rag.py</span><span class="chip">agent.py</span></div></div>
+<div class="card p"><p class="fn">brew_methods.py</p><p class="role">The 11 brew methods and the ordered keywords that detect them.</p>
+<p class="lab">Uses</p><span class="none">nothing</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">document_splitter.py</span><span class="chip">rag.py</span><span class="chip">agent.py</span><span class="chip">app.py</span></div></div>
+</div>
+
+<h2>4 · Foundations <small>src/, used everywhere</small></h2>
+<div class="grid">
+<div class="card f"><p class="fn">llm.py</p><p class="role">get_llm(): the chat model through OpenRouter.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">.env</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span><span class="chip">build_knowledge_base.py</span><span class="chip">evaluate_rag.py</span></div></div>
+<div class="card f"><p class="fn">vector_store.py</p><p class="role">get_vector_store(): opens Chroma with one fixed set of settings.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">embeddings.py</span><span class="chip">chroma_db/</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">app.py</span><span class="chip">build_knowledge_base.py</span><span class="chip">evaluate_rag.py</span></div></div>
+<div class="card f"><p class="fn">embeddings.py</p><p class="role">get_embeddings(): turns text into 1,536 numbers.</p>
+<p class="lab">Uses</p><div class="chips"><span class="chip">.env</span></div>
+<p class="lab">Used by</p><div class="chips"><span class="chip">vector_store.py</span></div></div>
+<div class="card f"><p class="fn">eval_test_set.py</p><p class="role">10 test questions with reference answers for RAGAs.</p>
+<p class="lab">Uses</p><span class="none">nothing</span>
+<p class="lab">Used by</p><div class="chips"><span class="chip">evaluate_rag.py</span></div></div>
+</div>
+
+<h2>5 · Data and settings <small>not code</small></h2>
+<div class="grid">
+<div class="card d"><p class="fn">.env</p><p class="role">API key, model names, user agent. Never uploaded to GitHub.</p></div>
+<div class="card d"><p class="fn">data/</p><p class="role">troubleshooting_guide.md and brewing_guide.md (now with 11 brew methods).</p></div>
+<div class="card d"><p class="fn">chroma_db/</p><p class="role">160 records: written by the build, read by the app. Rebuildable.</p></div>
+<div class="card d"><p class="fn">assets/</p><p class="role">Bean emblem, barista avatar, coffee-bar background.</p></div>
+<div class="card d"><p class="fn">.streamlit/config.toml</p><p class="role">Base theme colours, read when Streamlit starts.</p></div>
+</div>
+
+<h2>6 · Not used by the app <small>learning and checking</small></h2>
+<div class="grid">
+<div class="card x"><p class="fn">learning/</p><p class="role">step01 to step14: one concept per script. Run with python -m learning.step01_hello</p></div>
+<div class="card x"><p class="fn">tests/</p><p class="role">step09, step15 to step19: evaluations and tests. Run with python -m tests.step17_tools</p></div>
+<div class="card x"><p class="fn">src/sample_notes.py</p><p class="role">5 practice notes, used only by the learning scripts.</p></div>
+</div>
+
+<h2>Three patterns to remember</h2>
+<div class="patterns">
+<div class="pat"><b>Shared doorways</b>llm.py, vector_store.py and embeddings.py hold their settings in one place, so the build, the app and the evaluation can never disagree.</div>
+<div class="pat"><b>Passed in, not imported</b>rag.py and chunk_tags.py receive the LLM and the database as arguments, so the same code works in the app and in evaluate_rag.py.</div>
+<div class="pat"><b>Simple files depend on nothing</b>tools.py, security.py, brew_methods.py and knowledge_sources.py use nothing else from src, so they are easy to test alone.</div>
+</div>
+
+<footer>R Café · Home Barista Assistant · Turing College AI Engineering, Sprint 2</footer>
+</main>
+</body>
+</html>

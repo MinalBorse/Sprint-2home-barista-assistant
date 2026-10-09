@@ -53,7 +53,7 @@ flowchart TD
     D[data/*.md + trusted Wikipedia pages] -->|build_knowledge_base.py<br/>load, clean, split, embed| C
     A --> LLM[GPT-4o mini via OpenRouter]
 ```
-
+For a map of every code file and how they connect, open [docs/codebase_map.html](docs/codebase_map.html) in a browser.
 ---
 
 ## Project structure
