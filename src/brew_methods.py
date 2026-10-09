@@ -30,12 +30,13 @@ ANY = "any"             # the planner's answer when no method is mentioned
 # ORDER MATTERS: "moka pot" comes before "espresso", because our
 # moka pot section is called "Moka pot (stovetop espresso maker)".
 BREW_METHOD_KEYWORDS = [
-    ("moka pot", ["moka", "stovetop"]),
+    ("moka pot", ["moka", "stovetop", "brikka", "bialetti"]),
     ("cold brew", ["cold brew"]),
     ("aeropress", ["aeropress"]),
     ("french press", ["french press", "cafetiere", "cafetière", "press pot", "plunger"]),
-    ("pour-over", ["pour-over", "pour over", "v60", "drip", "filter coffee"]),
-    ("espresso", ["espresso"]),
+    ("pour-over", ["pour-over", "pour over", "v60", "drip", "filter coffee",
+                   "chemex", "kalita", "melitta", "origami"]),
+    ("espresso", ["espresso", "lever"]),
 ]
 
 
