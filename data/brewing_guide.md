@@ -89,7 +89,40 @@ Cold brew steeps coarse coffee in cold or room-temperature water for many hours.
 - Steep time: 12 to 24 hours, in the fridge or at room temperature.
 
 Filter the coffee after steeping. Dilute the concentrate with water or milk, about one to one, before drinking.
+## Percolator (stovetop or electric)
 
+A percolator brews by pushing boiling water up a tube and showering it over the coffee again and again. It makes a strong, hot, full-bodied cup, but it can easily turn bitter.
+
+- Grind: coarse, like sea salt. Fine grounds fall through the basket.
+- Ratio: about 1:16, for example 30 grams of coffee for 500 ml of water.
+- Heat: medium-low. A gentle "perk" every few seconds, not a rolling boil.
+- Brew time: about 7 to 10 minutes after it starts to perk.
+
+Steps:
+1. Fill the bottom with water, up to the line below the basket.
+2. Put the coarse coffee in the basket and close the lid.
+3. Heat until it starts to perk, then turn the heat down.
+4. Let it perk gently for 7 to 10 minutes, then take it off the heat.
+5. Remove the basket of grounds before serving.
+
+If it tastes bitter or burnt, the heat was too high or it perked too long. Percolators over-extract easily.
+
+## South Indian filter coffee (filter kaapi)
+
+South Indian filter coffee is made in a two-part steel filter. Hot water drips slowly through the coffee to make a strong concentrate called decoction, which is mixed with hot milk and sugar.
+
+- Coffee: fine grind, often a blend of coffee and chicory (about 80 to 20).
+- Ratio: about 20 grams of coffee for 100 ml of water, for a strong decoction.
+- Water: just boiled.
+- Brew time: about 10 to 15 minutes of slow dripping.
+
+Steps:
+1. Put the coffee in the upper chamber and place the pressing disc on top.
+2. Pour in the hot water, cover, and let it drip into the lower chamber.
+3. Mix 1 part decoction with 2 to 3 parts hot milk, and add sugar to taste.
+4. Pour it between a tumbler and a dabara to make it frothy.
+
+If the decoction is too weak, use more coffee. If it drips too slowly, don't press the disc down so hard.
 ## Quick reference
 
 | Method | Grind | Ratio | Water temperature | Time |
