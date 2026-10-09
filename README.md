@@ -137,10 +137,25 @@ home-barista-assistant/
 
 `evaluate_rag.py` runs 10 test questions (clear, vague, slang, per brew method, and one off-topic) through the RAG pipeline twice, with and without query translation, and scores them with RAGAs (LLM-as-a-judge).
 
+### Run 1: 2026-10-07 (155 chunks)
+
 | Mode | Faithfulness | Answer relevancy | Context precision | Context recall |
 |---|---|---|---|---|
-| with query translation | **0.91** | 0.72 | **0.84** | **0.90** |
-| without query translation | 0.88 | 0.71 | 0.79 | 0.78 |
+| with query rewriting | **0.91** | **0.72** | **0.84** | **0.90** |
+| without query rewriting | 0.88 | 0.71 | 0.79 | 0.78 |
+
+### Run 2: 2026-10-09 (160 chunks)
+
+What changed since run 1: five new brew method sections, a pour-over section and an updated quick reference in the brewing guide, and a firmer rewriting rule in the planner ("puckery" becomes sour, "stovetop thing" becomes moka pot).
+
+| Mode | Faithfulness | Answer relevancy | Context precision | Context recall |
+|---|---|---|---|---|
+| with query rewriting | 0.81 | **0.72** | **0.82** | 0.90 |
+| without query rewriting | **0.91** | 0.71 | 0.68 | 0.90 |
+
+**What the two runs show:** better guides raised the baseline (recall without rewriting went from 0.78 to 0.90), and query rewriting now mainly improves precision (0.68 → 0.82; "why's my cup so meh?" went from 0.42 to 1.00). Faithfulness with rewriting dropped mostly because of one espresso answer (0.25): on inspection, all of its advice was in the guides, and the judge had counted the user's own description, repeated in the answer, as unsupported claims. With 10 questions, one answer can move an average by up to 0.1, so low-scoring rows are always inspected before changing anything.
+
+Query rewriting mainly improves **context precision** (0.68 → 0.82): for example, "why's my cup so meh?" went from 0.42 to 1.00. Recall is now equal in both modes, because improving the guides raised the baseline (it was 0.78 without rewriting in an earlier run). Faithfulness with rewriting is lower mostly because of one espresso answer (0.25): on inspection, all of its advice was in the guides, and the judge had counted the user's own description, repeated in the answer, as unsupported claims. With 10 questions, one answer can move an average by up to 0.1, so low-scoring rows are always inspected before changing anything.
 
 Findings:
 - Faithfulness is above the 0.8 target, so there's no hallucination problem.
