@@ -89,6 +89,7 @@ Cold brew steeps coarse coffee in cold or room-temperature water for many hours.
 - Steep time: 12 to 24 hours, in the fridge or at room temperature.
 
 Filter the coffee after steeping. Dilute the concentrate with water or milk, about one to one, before drinking.
+
 ## Percolator (stovetop or electric)
 
 A percolator brews by pushing boiling water up a tube and showering it over the coffee again and again. It makes a strong, hot, full-bodied cup, but it can easily turn bitter.
@@ -123,16 +124,7 @@ Steps:
 4. Pour it between a tumbler and a dabara to make it frothy.
 
 If the decoction is too weak, use more coffee. If it drips too slowly, don't press the disc down so hard.
-## Quick reference
 
-| Method | Grind | Ratio | Water temperature | Time |
-|---|---|---|---|---|
-| Pour-over / V60 | Medium-fine | 1:16 | 92-96 C | 2.5-3.5 min |
-| French press | Coarse | 1:15 | 93-96 C | 4 min |
-| AeroPress | Medium-fine to fine | 1:14 | 85-92 C | 1-2 min |
-| Moka pot | Fine | Fill basket | Hot water in base | Until it sputters |
-| Espresso | Fine | 1:2 | 90-96 C | 25-30 s |
-| Cold brew | Coarse | 1:8 | Cold or room temperature | 12-24 h |
 
 ## Siphon coffee (vacuum pot or syphon)
 
@@ -187,3 +179,19 @@ Steps:
 5. Wait a minute for the grounds to settle, and don't drink the last sip.
 
 If it tastes bitter or burnt, the heat was too high or it boiled.
+
+## Quick reference
+
+| Method | Grind | Ratio | Water temperature | Time |
+|---|---|---|---|---|
+| Pour-over / V60 | Medium-fine | 1:16 | 92-96 C | 2.5-3.5 min |
+| French press | Coarse | 1:15 | 93-96 C | 4 min |
+| AeroPress | Medium-fine to fine | 1:14 | 85-92 C | 1-2 min |
+| Moka pot | Fine | Fill basket | Hot water in base | Until it sputters |
+| Espresso | Fine | 1:2 | 90-96 C | 25-30 s |
+| Cold brew | Coarse | 1:8 | Cold or room temperature | 12-24 h |
+| Turkish coffee | Extra fine | 1:10 | Heat slowly, never boil | 3-4 min |
+| Siphon | Medium | 1:15 | 90-95 C | 3-4 min |
+| Vietnamese phin | Medium-fine | 1:5 | 92-96 C | 4-5 min |
+| Percolator | Coarse | 1:16 | Gentle perk, no boil | 7-10 min |
+| South Indian filter | Fine | 20 g for 100 ml | Just boiled | 10-15 min |
