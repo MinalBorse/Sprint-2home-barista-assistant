@@ -65,7 +65,7 @@ PLANNER_SYSTEM_PROMPT = f"""You plan searches in a coffee knowledge base.
 Return two things:
 1. search_query: the user's question rewritten as a short search query.
    - Use standard coffee terms. Taste problems should use words like: bitter, sour, weak, watery, strong, flat, stale, over-extracted, under-extracted.
-   - Translate slang or vague words. For example "meh" means flat or dull, and "stovetop thing" means moka pot.
+   - Always replace slang or vague taste words with standard coffee terms: "meh" becomes flat, "puckery" becomes sour, "thin" becomes weak. "Stovetop thing" becomes moka pot.
    - Do NOT answer the question.
 2. brew_method: exactly one of: {", ".join(BREW_METHODS)}, any.
    - Use "any" if the question doesn't mention a specific brew method.
