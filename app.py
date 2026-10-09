@@ -35,7 +35,7 @@ import uuid
 import streamlit as st
 
 from src.agent import UserPreferences, ask_agent, build_agent
-from src.brew_methods import ANY
+from src.brew_methods import ANY, BREW_METHODS
 from src.llm import get_llm
 from src.security import BLOCKED_REPLY, check_message
 from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
@@ -64,14 +64,24 @@ ASSISTANT_AVATAR = AVATAR_IMAGE
 # stored on our chunks (see src/brew_methods.py)
 BREWER_CHOICES = {
     "Not set": ANY,
-    "Pour-over / V60": "pour-over",
+    "Pour-over / V60 / Chemex": "pour-over",
     "French press": "french press",
     "AeroPress": "aeropress",
     "Moka pot": "moka pot",
     "Espresso machine": "espresso",
     "Cold brew": "cold brew",
+    "Turkish coffee (cezve)": "turkish coffee",
+    "Siphon (vacuum pot)": "siphon",
+    "Vietnamese phin": "vietnamese phin",
+    "Percolator": "percolator",
+    "South Indian filter": "south indian filter",
 }
-
+# Safety check: every dropdown value must be a real brew method.
+# A typo here would otherwise make the filter silently find nothing,
+# so we stop the app immediately with a clear message instead.
+for brewer_value in BREWER_CHOICES.values():
+    if brewer_value != ANY and brewer_value not in BREW_METHODS:
+        raise ValueError(f"Unknown brew method in BREWER_CHOICES: {brewer_value}")
 # Friendly names and icons for each tool, shown in the UI
 # (":material/...:" are Streamlit's built-in, clean line icons)
 TOOL_LABELS = {
