@@ -69,7 +69,7 @@ Return two things:
    - Do NOT answer the question.
 2. brew_method: exactly one of: {", ".join(BREW_METHODS)}, any.
    - Use "any" if the question doesn't mention a specific brew method.
-   - "V60", "drip" and "filter" mean pour-over. "Cafetiere" and "plunger" mean french press. "Stovetop" means moka pot.
+   - "V60", "Chemex", "Kalita", "Melitta", "Origami", "drip" and "filter" mean pour-over. "Cafetiere" and "plunger" mean french press. "Stovetop", "Brikka" and "Bialetti" mean moka pot. A "lever" machine means espresso.
 3. taste_problem: exactly one of: {", ".join(TASTE_PROBLEMS)}, none.
    - "harsh", "burnt" and "astringent" mean bitter. "sharp", "acidic", "tangy" and "puckery" mean sour.
    - "watery" and "thin" mean weak. "meh" and "dull" mean flat. Use "none" if no taste problem is described.
