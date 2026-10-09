@@ -119,6 +119,24 @@ Steps:
 
 If it tastes sour, grind finer or steep a little longer. If it tastes bitter, steep for less time.
 
+## Vietnamese phin (drip filter)
+
+A phin is a small metal drip filter that sits on top of a cup. It makes a strong, concentrated coffee, traditionally served with sweetened condensed milk.
+
+- Grind: medium-fine, a little coarser than espresso.
+- Ratio: about 1:5, for example 20 grams of coffee for 100 ml of water.
+- Water temperature: just off the boil, about 92 to 96 degrees Celsius.
+- Brew time: about 4 to 5 minutes of slow dripping.
+
+Steps:
+1. Put sweetened condensed milk in the cup, if you like.
+2. Add the coffee to the phin, shake it level and press the insert down lightly.
+3. Pour in a little hot water to bloom the coffee and wait 30 seconds.
+4. Fill the phin with hot water, put the lid on and let it drip.
+5. Stir in the milk, or pour it over ice for Vietnamese iced coffee.
+
+If it drips through in under 3 minutes, grind finer or press the insert more firmly. If it barely drips, grind coarser.
+
 ## Turkish coffee (cezve or ibrik)
 
 Turkish coffee is brewed by heating very finely ground coffee with water in a small pot called a cezve or ibrik. It is served unfiltered, so the grounds settle at the bottom of the cup.
