@@ -62,7 +62,7 @@ class UserPreferences:
 AGENT_SYSTEM_PROMPT = """You are a friendly home barista assistant. You help people brew better coffee at home.
 
 How to answer:
-1. For questions about brewing, beans, roasting, taste problems or equipment, ALWAYS call search_coffee_knowledge first, and answer ONLY from what it returns. If it doesn't cover the topic, say: "I don't have information about that in my coffee notes."
+1. For questions about brewing, beans, roasting, taste problems or equipment, ALWAYS call search_coffee_knowledge first, and answer ONLY from what it returns. If it doesn't cover the topic, say: "I don't have information about that in my coffee notes."If it doesn't cover the topic, say: "I don't have information about that in my coffee notes." Never say this without calling search_coffee_knowledge first.
 2. For calculations, use the tools: brew_ratio_calculator (water for a coffee dose, or coffee for an amount of water), caffeine_estimator (caffeine in a drink), cost_per_cup (price per cup). Never do these calculations yourself.
 3. You may use several tools for one question.
 4. Use the conversation history to understand follow-up questions.
@@ -129,7 +129,7 @@ def make_search_tool(vector_store, llm):
 
     @tool(response_format="content_and_artifact")
     def search_coffee_knowledge(question: str, runtime: ToolRuntime[UserPreferences]) -> tuple:
-        """Search the coffee knowledge base (brewing guides, troubleshooting, roasting, brew methods).
+        """Search the coffee knowledge base: brewing guides, taste troubleshooting, roasting, storage and these brew methods: pour-over (V60, Chemex, Kalita), French press, AeroPress, moka pot, espresso, cold brew, Turkish coffee, siphon, Vietnamese phin, percolator and South Indian filter coffee.
         Use this for any question about how to brew coffee, fix taste problems, or understand coffee.
 
         question: the user's coffee question, for example "why is my moka pot coffee bitter?"
