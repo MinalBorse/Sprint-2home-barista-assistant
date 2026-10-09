@@ -20,6 +20,11 @@ BREW_METHODS = [
     "moka pot",
     "espresso",
     "cold brew",
+    "turkish coffee",
+    "siphon",
+    "vietnamese phin",
+    "percolator",
+    "south indian filter",
 ]
 
 GENERAL = "general"     # chunks that apply to every method
