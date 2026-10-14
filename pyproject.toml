@@ -19,3 +19,21 @@ dependencies = [
     "rank-bm25==0.2.2",
     "streamlit==1.65.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.17.0",
+]
+[tool.ruff]
+line-length = 120          # allow lines up to 120 characters (PEP 8's 79 is too short for prompts and comments)
+target-version = "py312"   # the Python version the project uses
+
+[tool.ruff.lint]
+# E, W: PEP 8 style   F: real bugs (unused imports, undefined names)
+# I: sorted imports   B: common bug patterns (like the zip() one)
+select = ["E", "W", "F", "I", "B"]
+ignore = ["E501"]          # don't complain about long text lines inside prompts
+[tool.ruff.lint.per-file-ignores]
+# load_dotenv() must run BEFORE the web loader is imported, so USER_AGENT is set
+"src/document_loader.py" = ["E402"]
+"learning/step13_load_documents.py" = ["E402"]
