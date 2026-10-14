@@ -342,7 +342,41 @@ This document has two parts:
 | Agent re-run after the fixes | `python -m tests.step18_agent` | 12/12 expected decisions, including both regression tests; the French press answer now cited real sources (#33 is random variation) |
 | App demo re-run after the fixes | `streamlit run app.py`, 5 questions | 5/5 correct answers; "tell me about latte art" showed "Answered directly", found #35 |
 | #35: does the search get skipped? | `ask_agent()` in 3 fresh conversations: "How do I make latte art?" twice, "tell me about latte art" once | "How do I make..." searched 2 of 2 times; "tell me about..." skipped the search (2 of 2 including the app) |
+### How to repeat the one-off checks
 
+These checks were run as single commands from the project root (with the virtual environment active), not as saved scripts.
+
+**Knowledge base health check** (free, no AI calls):
+
+```powershell
+python -c "from collections import Counter; from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION; from src.brew_methods import BREW_METHODS; s = get_vector_store(KNOWLEDGE_BASE_COLLECTION); meta = s._collection.get(include=['metadatas'])['metadatas']; c = Counter(m.get('brew_method') for m in meta); print('Total:', len(meta)); print('Missing methods:', [m for m in BREW_METHODS if c[m] == 0] or 'none'); print('Taste sections:', dict(Counter(m.get('taste_problem') for m in meta if m.get('taste_problem') != 'none')))"
+```
+
+Expected: `Total: 160`, `Missing methods: none`, and each of the 5 taste problems with 1 section.
+
+**Failure injection for #2** (a few cents): forces `retrieve` to fail inside this command only, then asks two questions in the same conversation.
+
+```powershell
+python -c "import src.agent as A; from src.llm import get_llm; from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION; a = A.build_agent(get_vector_store(KNOWLEDGE_BASE_COLLECTION), get_llm()); original = A.retrieve; A.retrieve = lambda *args, **kwargs: 1 / 0; print('1:', A.ask_agent(a, 'Why is my coffee bitter?', 'h2')['answer'][:150]); A.retrieve = original; print('2:', A.ask_agent(a, 'And why might it taste sour?', 'h2')['answer'][:150])"
+```
+
+Before the fix: a `ZeroDivisionError` crash. After the fix: an `ERROR in the knowledge search` log line, a polite answer (1), and a normal answer about sour coffee (2).
+
+**Planner routing for #6** (a few cents):
+
+```powershell
+python -c "from src.llm import get_llm; from src.rag import plan_search; llm = get_llm(); [print(q.ljust(50), '->', plan_search(q, llm)['brew_method']) for q in ['How do I make Vietnamese drip coffee?', 'Recipe for South Indian filter coffee', 'Best grind for drip coffee', 'My filter coffee tastes sour']]"
+```
+
+Expected: vietnamese phin, south indian filter, pour-over, pour-over.
+
+**Search skipping for #35** (a few cents): three fresh conversations.
+
+```powershell
+python -c "from src.agent import build_agent, ask_agent; from src.llm import get_llm; from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION; a = build_agent(get_vector_store(KNOWLEDGE_BASE_COLLECTION), get_llm()); [print(i, [c['name'] for c in ask_agent(a, q, f'latte-{i}')['tool_calls']] or 'NO TOOL', '|', q) for i, q in enumerate(['How do I make latte art?', 'tell me about latte art', 'How do I make latte art?'])]"
+```
+
+Observed: "How do I make..." used `search_coffee_knowledge` both times; "tell me about..." used no tool.
 ## Verdict per finding
 
 | # | Finding (short) | Sev. | Assessment | My reasoning | Status |
