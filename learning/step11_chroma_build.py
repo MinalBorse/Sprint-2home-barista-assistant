@@ -12,9 +12,9 @@
 # ==========================================================
 
 from langchain_core.documents import Document
+
 from src.sample_notes import SAMPLE_NOTES
 from src.vector_store import get_vector_store
-
 
 COLLECTION_NAME = "sample_notes"
 

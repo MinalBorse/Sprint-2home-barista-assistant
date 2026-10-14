@@ -13,6 +13,7 @@
 # ==========================================================
 
 from rank_bm25 import BM25Okapi
+
 from src.sample_notes import SAMPLE_NOTES
 
 

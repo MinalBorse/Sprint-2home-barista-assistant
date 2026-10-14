@@ -14,7 +14,6 @@
 
 from src.vector_store import get_vector_store
 
-
 COLLECTION_NAME = "sample_notes"
 TOP_K = 2
 

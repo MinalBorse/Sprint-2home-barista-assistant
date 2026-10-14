@@ -12,19 +12,20 @@
 # ==========================================================
 
 import math
-from rank_bm25 import BM25Okapi
-from src.sample_notes import SAMPLE_NOTES
-from src.embeddings import get_embeddings
 
+from rank_bm25 import BM25Okapi
+
+from src.embeddings import get_embeddings
+from src.sample_notes import SAMPLE_NOTES
 
 # ----------------------------------------------------------
 # Settings
 # ----------------------------------------------------------
-TOP_K = 2               # how many notes we retrieve per question
+TOP_K = 2  # how many notes we retrieve per question
 
-RRF_CONSTANT = 60       # standard value for Reciprocal Rank Fusion
+RRF_CONSTANT = 60  # standard value for Reciprocal Rank Fusion
 EMBEDDING_WEIGHT = 0.6  # how much we trust meaning (embeddings)
-BM25_WEIGHT = 0.4       # how much we trust exact words (BM25)
+BM25_WEIGHT = 0.4  # how much we trust exact words (BM25)
 
 
 # ----------------------------------------------------------
@@ -32,18 +33,12 @@ BM25_WEIGHT = 0.4       # how much we trust exact words (BM25)
 # ----------------------------------------------------------
 # We wrote these by hand, so we KNOW the correct answers.
 TEST_SET = [
-    {"question": "My coffee tastes harsh and burnt, how can I fix it?",
-     "relevant_ids": ["bitter"]},
-    {"question": "Why does my brew taste too acidic and tangy?",
-     "relevant_ids": ["sour"]},
-    {"question": "What water temperature should I use for a V60?",
-     "relevant_ids": ["v60"]},
-    {"question": "How should I keep my beans fresh?",
-     "relevant_ids": ["storage"]},
-    {"question": "Which roast tastes chocolatey?",
-     "relevant_ids": ["roast"]},
-    {"question": "My pour-over tastes weak and sharp, what should I change?",
-     "relevant_ids": ["sour"]},
+    {"question": "My coffee tastes harsh and burnt, how can I fix it?", "relevant_ids": ["bitter"]},
+    {"question": "Why does my brew taste too acidic and tangy?", "relevant_ids": ["sour"]},
+    {"question": "What water temperature should I use for a V60?", "relevant_ids": ["v60"]},
+    {"question": "How should I keep my beans fresh?", "relevant_ids": ["storage"]},
+    {"question": "Which roast tastes chocolatey?", "relevant_ids": ["roast"]},
+    {"question": "My pour-over tastes weak and sharp, what should I change?", "relevant_ids": ["sour"]},
 ]
 
 
@@ -54,6 +49,7 @@ TEST_SET = [
 # ==========================================================
 
 # ---------- Method A: BM25 (keyword search) ----------
+
 
 def tokenize(text):
     """Turn text into a list of lowercase words."""
@@ -88,10 +84,11 @@ def rank_with_bm25(question):
 
 # ---------- Method B: embeddings (meaning search) ----------
 
+
 def cosine_similarity(vector_a, vector_b):
     """Higher number = more similar meaning."""
     dot_product = 0
-    for number_a, number_b in zip(vector_a, vector_b):
+    for number_a, number_b in zip(vector_a, vector_b, strict=True):
         dot_product = dot_product + (number_a * number_b)
     length_a = math.sqrt(sum(number * number for number in vector_a))
     length_b = math.sqrt(sum(number * number for number in vector_b))
@@ -128,6 +125,7 @@ def rank_with_embeddings(question):
 
 # ---------- Method C: hybrid (both combined with RRF) ----------
 
+
 def rank_with_hybrid(bm25_ranking, embedding_ranking):
     """
     Combine two rankings using weighted Reciprocal Rank Fusion.
@@ -158,6 +156,7 @@ def rank_with_hybrid(bm25_ranking, embedding_ranking):
 # ==========================================================
 # PART 2: the measurements
 # ==========================================================
+
 
 def precision_at_k(ranked_ids, relevant_ids, k):
     """
@@ -191,9 +190,9 @@ def recall_at_k(ranked_ids, relevant_ids, k):
 
 # Running totals, so we can calculate averages at the end
 totals = {
-    "BM25":       {"precision": 0, "recall": 0, "first_correct": 0},
+    "BM25": {"precision": 0, "recall": 0, "first_correct": 0},
     "Embeddings": {"precision": 0, "recall": 0, "first_correct": 0},
-    "Hybrid":     {"precision": 0, "recall": 0, "first_correct": 0},
+    "Hybrid": {"precision": 0, "recall": 0, "first_correct": 0},
 }
 
 for test in TEST_SET:
@@ -228,8 +227,10 @@ for test in TEST_SET:
             mark = "MISS"
 
         top_results = ", ".join(ranking[:TOP_K])
-        print(f"   {mark} {method_name:<11} top {TOP_K}: {top_results:<18} "
-              f"P@{TOP_K}={precision:.2f}  R@{TOP_K}={recall:.2f}")
+        print(
+            f"   {mark} {method_name:<11} top {TOP_K}: {top_results:<18} "
+            f"P@{TOP_K}={precision:.2f}  R@{TOP_K}={recall:.2f}"
+        )
 
         totals[method_name]["precision"] += precision
         totals[method_name]["recall"] += recall
@@ -249,8 +250,7 @@ for method_name, numbers in totals.items():
     first_correct_count = numbers["first_correct"]
     avg_precision = numbers["precision"] / number_of_questions
     avg_recall = numbers["recall"] / number_of_questions
-    print(f"{method_name:<12} {first_correct_count}/{number_of_questions:<10} "
-          f"{avg_precision:<8.2f} {avg_recall:<8.2f}")
+    print(f"{method_name:<12} {first_correct_count}/{number_of_questions:<10} {avg_precision:<8.2f} {avg_recall:<8.2f}")
 print()
-print(f"Note: each question has only 1 correct note, so the best possible")
+print("Note: each question has only 1 correct note, so the best possible")
 print(f"P@{TOP_K} is {1 / TOP_K:.2f} (1 correct out of {TOP_K} retrieved).")

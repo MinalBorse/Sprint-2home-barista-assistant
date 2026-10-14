@@ -41,11 +41,10 @@ from src.security import BLOCKED_REPLY, check_message, llm_check_message
 from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
-
 # ----------------------------------------------------------
 # Settings
 # ----------------------------------------------------------
-MAX_QUESTION_LENGTH = 500    # longer questions are rejected (input validation)
+MAX_QUESTION_LENGTH = 500  # longer questions are rejected (input validation)
 
 # Starter questions shown in the barista's greeting.
 # Tapping one asks it straight away.
@@ -110,6 +109,7 @@ def load_resources():
 
     return vector_store, agent, guard_llm
 
+
 # ==========================================================
 # Helper functions
 # ==========================================================
@@ -144,9 +144,7 @@ def show_tool_results(tool_calls):
             continue
         icon, label = TOOL_LABELS.get(call["name"], (":material/build:", call["name"]))
         st.success(
-            f"**{label}**  \n"
-            f"Inputs: {format_inputs(call['args'])}  \n"
-            f"Result: {call['result']}",
+            f"**{label}**  \nInputs: {format_inputs(call['args'])}  \nResult: {call['result']}",
             icon=icon,
         )
 
@@ -190,10 +188,7 @@ def show_sources(sources):
             if source["section"]:
                 heading = heading + f" - {source['section']}"
             st.markdown(heading)
-            st.caption(
-                f"Similarity {source['similarity']:.2f} - "
-                f"{source.get('brew_method', '')} - {source['source']}"
-            )
+            st.caption(f"Similarity {source['similarity']:.2f} - {source.get('brew_method', '')} - {source['source']}")
             st.text(source["text"][:300] + "...")
             st.divider()
 
@@ -344,7 +339,7 @@ if question is not None:
 
     # REQUIREMENT: "Add relevant security measures for your domain"
     # The guard runs BEFORE the AI. A blocked message never reaches the AI.
-        # Check 1: the pattern guard (free and instant)
+    # Check 1: the pattern guard (free and instant)
     is_safe, reason = check_message(question)
 
     # Check 2: the LLM guard (smarter, about a second).
@@ -357,13 +352,15 @@ if question is not None:
         with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
             st.markdown(BLOCKED_REPLY)
             st.caption(f"Blocked by the safety filter: {reason}")
-        st.session_state.messages.append({
-            "role": "assistant",
-            "content": BLOCKED_REPLY,
-            "tool_calls": [],
-            "sources": [],
-            "plans": [],
-        })
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": BLOCKED_REPLY,
+                "tool_calls": [],
+                "sources": [],
+                "plans": [],
+            }
+        )
         st.stop()
 
     with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
@@ -404,10 +401,12 @@ if question is not None:
         st.markdown(result["answer"])
         show_assistant_extras(result)
 
-    st.session_state.messages.append({
-        "role": "assistant",
-        "content": result["answer"],
-        "tool_calls": result["tool_calls"],
-        "sources": result["sources"],
-        "plans": result["plans"],
-    })
+    st.session_state.messages.append(
+        {
+            "role": "assistant",
+            "content": result["answer"],
+            "tool_calls": result["tool_calls"],
+            "sources": result["sources"],
+            "plans": result["plans"],
+        }
+    )

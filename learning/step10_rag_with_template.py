@@ -14,16 +14,17 @@
 # ==========================================================
 
 import math
-from langchain_core.prompts import ChatPromptTemplate
-from src.llm import get_llm
-from src.embeddings import get_embeddings
-from src.sample_notes import SAMPLE_NOTES
 
+from langchain_core.prompts import ChatPromptTemplate
+
+from src.embeddings import get_embeddings
+from src.llm import get_llm
+from src.sample_notes import SAMPLE_NOTES
 
 # ----------------------------------------------------------
 # Settings
 # ----------------------------------------------------------
-TOP_K = 2   # how many notes to give the AI
+TOP_K = 2  # how many notes to give the AI
 
 
 # ==========================================================
@@ -32,10 +33,11 @@ TOP_K = 2   # how many notes to give the AI
 # Note: in the next lesson, ChromaDB will replace this part.
 # Here we still do it by hand so every step is visible.
 
+
 def cosine_similarity(vector_a, vector_b):
     """Higher number = more similar meaning."""
     dot_product = 0
-    for number_a, number_b in zip(vector_a, vector_b):
+    for number_a, number_b in zip(vector_a, vector_b, strict=True):
         dot_product = dot_product + (number_a * number_b)
     length_a = math.sqrt(sum(number * number for number in vector_a))
     length_b = math.sqrt(sum(number * number for number in vector_b))
@@ -95,10 +97,12 @@ Rules:
 #   - "system": the rules above (always the same)
 #   - "human": the notes + the question, with {placeholders}
 #     that get filled in for every new question
-prompt_template = ChatPromptTemplate.from_messages([
-    ("system", SYSTEM_PROMPT),
-    ("human", "Coffee notes:\n{context}\n\nQuestion: {question}"),
-])
+prompt_template = ChatPromptTemplate.from_messages(
+    [
+        ("system", SYSTEM_PROMPT),
+        ("human", "Coffee notes:\n{context}\n\nQuestion: {question}"),
+    ]
+)
 
 
 def build_context(retrieved_items):
@@ -141,10 +145,12 @@ def ask(question):
     # --- AUGMENT + GENERATE ---
     # invoke() fills {context} and {question} in the template,
     # then sends the finished prompt to the LLM.
-    response = rag_chain.invoke({
-        "context": build_context(retrieved_items),
-        "question": question,
-    })
+    response = rag_chain.invoke(
+        {
+            "context": build_context(retrieved_items),
+            "question": question,
+        }
+    )
 
     print("ANSWER:")
     print(response.content)

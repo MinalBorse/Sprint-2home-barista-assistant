@@ -25,7 +25,6 @@ import os
 
 import streamlit as st
 
-
 # The bean emblem (made in code, saved as image files)
 LOGO_IMAGE = "assets/logo_bean.png"
 AVATAR_IMAGE = "assets/barista_avatar.png"

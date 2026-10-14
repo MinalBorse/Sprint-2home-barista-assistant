@@ -11,11 +11,10 @@
 # Only planning + searching: no answers, so it costs almost nothing.
 # ==========================================================
 
-from src.llm import get_llm
-from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION
-from src.rag import plan_search, retrieve
 from src.brew_methods import ANY
-
+from src.llm import get_llm
+from src.rag import plan_search, retrieve
+from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 SHOW_TOP = 4
 
@@ -44,7 +43,7 @@ QUESTIONS = [
     "How long should my cafetiere steep?",
     "What grind should I use for my V60?",
     "My espresso shot runs really fast and tastes sour",
-    "why's my cup so meh?",      # no brew method -> should be "any" (no filter)
+    "why's my cup so meh?",  # no brew method -> should be "any" (no filter)
 ]
 
 for question in QUESTIONS:
@@ -52,7 +51,7 @@ for question in QUESTIONS:
 
     print("==================================================")
     print("QUESTION:", question)
-    print(f"PLAN:     search \"{plan['search_query']}\"  |  brew_method = {plan['brew_method']}")
+    print(f'PLAN:     search "{plan["search_query"]}"  |  brew_method = {plan["brew_method"]}')
 
     show_results("WITHOUT filter:", plan["search_query"], ANY)
     if plan["brew_method"] != ANY:

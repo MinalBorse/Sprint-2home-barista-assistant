@@ -13,10 +13,12 @@
 
 # Load .env FIRST, so USER_AGENT is set before the web loader starts
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import bs4
 from langchain_community.document_loaders import DirectoryLoader, TextLoader, WebBaseLoader
+
 from src.knowledge_sources import LOCAL_DATA_FOLDER, TRUSTED_WEB_SOURCES
 
 
@@ -30,8 +32,8 @@ def load_local_documents():
 
     loader = DirectoryLoader(
         LOCAL_DATA_FOLDER,
-        glob="**/*.md",                       # all .md files, also in subfolders
-        loader_cls=TextLoader,                # read each one as plain text
+        glob="**/*.md",  # all .md files, also in subfolders
+        loader_cls=TextLoader,  # read each one as plain text
         loader_kwargs={"encoding": "utf-8"},  # avoid Windows character problems
     )
     documents = loader.load()

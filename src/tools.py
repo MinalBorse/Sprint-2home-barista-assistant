@@ -26,7 +26,6 @@ from typing import Optional
 
 from langchain_core.tools import tool
 
-
 # ==========================================================
 # TOOL 1: brew_ratio_calculator  (works in BOTH directions)
 # ==========================================================
@@ -38,13 +37,13 @@ from langchain_core.tools import tool
 # Without the second direction, the AI would have to do the division
 # itself, which our rules forbid (tools do the maths, not the AI).
 
-MIN_COFFEE_GRAMS = 1       # less than 1 g of coffee makes no sense
-MAX_COFFEE_GRAMS = 1000    # more than 1 kg is not a home brew
-MIN_WATER_ML = 10          # less than 10 ml is not a drink
-MAX_WATER_ML = 16000       # 16 litres = a very big party
-MIN_RATIO = 1              # 1:1 would be extremely strong
-MAX_RATIO = 30             # 1:30 would be extremely weak
-DEFAULT_RATIO = 16         # 1:16 is a common, balanced ratio
+MIN_COFFEE_GRAMS = 1  # less than 1 g of coffee makes no sense
+MAX_COFFEE_GRAMS = 1000  # more than 1 kg is not a home brew
+MIN_WATER_ML = 10  # less than 10 ml is not a drink
+MAX_WATER_ML = 16000  # 16 litres = a very big party
+MIN_RATIO = 1  # 1:1 would be extremely strong
+MAX_RATIO = 30  # 1:30 would be extremely weak
+DEFAULT_RATIO = 16  # 1:16 is a common, balanced ratio
 
 
 @tool
@@ -72,8 +71,7 @@ def brew_ratio_calculator(
     # ---- Step 2: check the ratio ----
     if ratio < MIN_RATIO or ratio > MAX_RATIO:
         return (
-            f"Error: ratio must be between {MIN_RATIO} and {MAX_RATIO}. "
-            f"You sent {ratio}. Example: for 1:16, send 16."
+            f"Error: ratio must be between {MIN_RATIO} and {MAX_RATIO}. You sent {ratio}. Example: for 1:16, send 16."
         )
 
     # ---- Step 3a: coffee -> water ----
@@ -84,17 +82,11 @@ def brew_ratio_calculator(
                 f"{MAX_COFFEE_GRAMS} grams. You sent {coffee_grams} g."
             )
         water_grams = coffee_grams * ratio
-        return (
-            f"Use {water_grams:.0f} g of water for {coffee_grams:g} g of coffee "
-            f"(ratio 1:{ratio:g})."
-        )
+        return f"Use {water_grams:.0f} g of water for {coffee_grams:g} g of coffee (ratio 1:{ratio:g})."
 
     # ---- Step 3b: water -> coffee ----
     if water_ml < MIN_WATER_ML or water_ml > MAX_WATER_ML:
-        return (
-            f"Error: water amount must be between {MIN_WATER_ML} and "
-            f"{MAX_WATER_ML} ml. You sent {water_ml} ml."
-        )
+        return f"Error: water amount must be between {MIN_WATER_ML} and {MAX_WATER_ML} ml. You sent {water_ml} ml."
     coffee_needed = water_ml / ratio
     return (
         f"Use about {coffee_needed:.1f} g of coffee for {water_ml:g} ml of water "
@@ -147,10 +139,7 @@ def caffeine_estimator(drink: str, size_ml: float) -> str:
 
     # ---- Step 2: check the size ----
     if size_ml < MIN_SIZE_ML or size_ml > MAX_SIZE_ML:
-        return (
-            f"Error: size must be between {MIN_SIZE_ML} and {MAX_SIZE_ML} ml. "
-            f"You sent {size_ml} ml."
-        )
+        return f"Error: size must be between {MIN_SIZE_ML} and {MAX_SIZE_ML} ml. You sent {size_ml} ml."
 
     # ---- Step 3: calculate ----
     caffeine_mg = CAFFEINE_MG_PER_100ML[drink_key] * size_ml / 100
@@ -180,7 +169,7 @@ def caffeine_estimator(drink: str, size_ml: float) -> str:
 # ==========================================================
 # TOOL 3: cost_per_cup
 # ==========================================================
-MAX_BAG_GRAMS = 10000      # 10 kg is already a café-sized bag
+MAX_BAG_GRAMS = 10000  # 10 kg is already a café-sized bag
 MAX_BAG_PRICE = 10000
 
 

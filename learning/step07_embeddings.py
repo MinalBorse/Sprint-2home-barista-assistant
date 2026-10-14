@@ -12,8 +12,8 @@
 # ==========================================================
 
 import math
-from src.embeddings import get_embeddings
 
+from src.embeddings import get_embeddings
 
 # ----------------------------------------------------------
 # The same 5 coffee notes as in step06
@@ -23,28 +23,26 @@ KNOWLEDGE_BASE = [
     {
         "source": "troubleshooting_guide",
         "text": "Bitter, harsh or burnt-tasting coffee is usually over-extracted. "
-                "Use a coarser grind, slightly cooler water, or a shorter brew time. "
-                "For a French press, steep for about 4 minutes, not longer.",
+        "Use a coarser grind, slightly cooler water, or a shorter brew time. "
+        "For a French press, steep for about 4 minutes, not longer.",
     },
     {
         "source": "troubleshooting_guide",
-        "text": "Sour coffee is usually under-extracted. "
-                "Try a finer grind, hotter water, or a longer brew time.",
+        "text": "Sour coffee is usually under-extracted. Try a finer grind, hotter water, or a longer brew time.",
     },
     {
         "source": "v60_guide",
         "text": "For a V60, use a medium-fine grind and water at 92 to 96 degrees Celsius. "
-                "Bloom the coffee with twice its weight in water for 30 to 45 seconds.",
+        "Bloom the coffee with twice its weight in water for 30 to 45 seconds.",
     },
     {
         "source": "beans_guide",
-        "text": "Light roasts keep more fruity and floral flavours. "
-                "Dark roasts taste more chocolatey and smoky.",
+        "text": "Light roasts keep more fruity and floral flavours. Dark roasts taste more chocolatey and smoky.",
     },
     {
         "source": "storage_guide",
         "text": "Store coffee beans in an airtight container away from light and heat. "
-                "Beans taste best within 2 to 4 weeks after the roast date.",
+        "Beans taste best within 2 to 4 weeks after the roast date.",
     },
 ]
 
@@ -62,7 +60,7 @@ def cosine_similarity(vector_a, vector_b):
 
     # 1. Multiply matching numbers and add them up ("dot product")
     dot_product = 0
-    for number_a, number_b in zip(vector_a, vector_b):
+    for number_a, number_b in zip(vector_a, vector_b, strict=True):
         dot_product = dot_product + (number_a * number_b)
 
     # 2. The "length" of each vector

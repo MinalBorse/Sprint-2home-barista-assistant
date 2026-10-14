@@ -1,4 +1,5 @@
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from src.llm import get_llm
 
 llm = get_llm()
@@ -10,4 +11,3 @@ messages = [
 
 response = llm.invoke(messages)
 print(response.content)
-

@@ -122,19 +122,26 @@ async def score_one_case(question, reference, rag_result):
     results = await asyncio.gather(
         safe_score(
             faithfulness_metric,
-            user_input=question, response=answer, retrieved_contexts=contexts,
+            user_input=question,
+            response=answer,
+            retrieved_contexts=contexts,
         ),
         safe_score(
             relevancy_metric,
-            user_input=question, response=answer,
+            user_input=question,
+            response=answer,
         ),
         safe_score(
             precision_metric,
-            user_input=question, reference=reference, retrieved_contexts=contexts,
+            user_input=question,
+            reference=reference,
+            retrieved_contexts=contexts,
         ),
         safe_score(
             recall_metric,
-            user_input=question, reference=reference, retrieved_contexts=contexts,
+            user_input=question,
+            reference=reference,
+            retrieved_contexts=contexts,
         ),
     )
 
@@ -174,7 +181,7 @@ async def main():
     rag_llm = get_llm()
     os.makedirs(RESULTS_FOLDER, exist_ok=True)
 
-    summary = {}   # mode name -> average of each metric
+    summary = {}  # mode name -> average of each metric
 
     for mode in MODES:
         print("=" * 70)
@@ -189,9 +196,7 @@ async def main():
             reference = test_case["reference"]
 
             # Run OUR RAG pipeline
-            rag_result = answer_with_rag(
-                question, vector_store, rag_llm, use_rewrite=mode["use_rewrite"]
-            )
+            rag_result = answer_with_rag(question, vector_store, rag_llm, use_rewrite=mode["use_rewrite"])
 
             # Let the judge score it
             scores = await score_one_case(question, reference, rag_result)
@@ -205,15 +210,17 @@ async def main():
                 f"{question[:40]}"
             )
 
-            rows.append({
-                "question": question,
-                "search_query": rag_result["search_query"],
-                "answer": rag_result["answer"],
-                "faithfulness": scores["faithfulness"],
-                "answer_relevancy": scores["answer_relevancy"],
-                "context_precision": scores["context_precision"],
-                "context_recall": scores["context_recall"],
-            })
+            rows.append(
+                {
+                    "question": question,
+                    "search_query": rag_result["search_query"],
+                    "answer": rag_result["answer"],
+                    "faithfulness": scores["faithfulness"],
+                    "answer_relevancy": scores["answer_relevancy"],
+                    "context_precision": scores["context_precision"],
+                    "context_recall": scores["context_recall"],
+                }
+            )
             case_number = case_number + 1
 
         # Save every row to a CSV file (open it in Excel or VS Code)
@@ -231,7 +238,6 @@ async def main():
             for row in rows:
                 values.append(row[metric_name])
             summary[mode["name"]][metric_name] = average(values)
-
 
     # ==========================================================
     # STEP 4: the final comparison

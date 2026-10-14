@@ -267,11 +267,13 @@ flowchart TB
 Chroma filter built by `build_filter()`:
 
 ```python
-{"$and": [
-    {"brew_method": {"$in": ["moka pot", "general"]}},   # this method + general tips
-    {"source_type": "own guide"},                         # "Trusted guides only"
-    {"topic": {"$ne": "history"}},                        # "Hide history and trivia"
-]}
+{
+    "$and": [
+        {"brew_method": {"$in": ["moka pot", "general"]}},  # this method + general tips
+        {"source_type": "own guide"},  # "Trusted guides only"
+        {"topic": {"$ne": "history"}},  # "Hide history and trivia"
+    ]
+}
 ```
 
 | Design choice | Reason |
@@ -300,12 +302,16 @@ The chat runs on an **agent** built with LangChain's `create_agent`. For each me
 
 ```python
 agent = create_agent(
-    model=llm,                              # the chat model (get_llm)
-    tools=[search_coffee_knowledge,         # RAG
-           brew_ratio_calculator, caffeine_estimator, cost_per_cup],
-    middleware=[personalised_prompt],       # builds the system prompt before every model call
-    checkpointer=InMemorySaver(),           # memory, one thread per session
-    context_schema=UserPreferences,         # sidebar preferences, per request
+    model=llm,  # the chat model (get_llm)
+    tools=[
+        search_coffee_knowledge,  # RAG
+        brew_ratio_calculator,
+        caffeine_estimator,
+        cost_per_cup,
+    ],
+    middleware=[personalised_prompt],  # builds the system prompt before every model call
+    checkpointer=InMemorySaver(),  # memory, one thread per session
+    context_schema=UserPreferences,  # sidebar preferences, per request
 )
 ```
 

@@ -12,8 +12,7 @@
 # REQUIREMENT: "Include user input validation"
 # ==========================================================
 
-from src.tools import brew_ratio_calculator, caffeine_estimator, cost_per_cup, CALCULATOR_TOOLS
-
+from src.tools import CALCULATOR_TOOLS, brew_ratio_calculator, caffeine_estimator, cost_per_cup
 
 passed = 0
 failed = 0

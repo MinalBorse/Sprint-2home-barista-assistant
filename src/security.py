@@ -27,8 +27,9 @@
 # ==========================================================
 
 import re
-from pydantic import BaseModel, Field
+
 from langchain_core.messages import HumanMessage, SystemMessage
+from pydantic import BaseModel, Field
 
 # ----------------------------------------------------------
 # Attack patterns
@@ -42,23 +43,26 @@ from langchain_core.messages import HumanMessage, SystemMessage
 # questions like "should I ignore the bloom?" are NOT blocked.
 INJECTION_PATTERNS = [
     # "ignore all previous instructions", "ignore your rules", ...
-    (r"\b(ignore|disregard|forget|override)\s+(all\s+|any\s+|the\s+|your\s+|my\s+)?"
-     r"(previous\s+|prior\s+|above\s+|earlier\s+|original\s+)?(instructions|rules|prompts?|guidelines)",
-     "tries to override the assistant's instructions"),
-
+    (
+        r"\b(ignore|disregard|forget|override)\s+(all\s+|any\s+|the\s+|your\s+|my\s+)?"
+        r"(previous\s+|prior\s+|above\s+|earlier\s+|original\s+)?(instructions|rules|prompts?|guidelines)",
+        "tries to override the assistant's instructions",
+    ),
     # "reveal your system prompt", "what is your hidden prompt", ...
-    (r"\b(system|hidden|initial|original|secret)\s+(prompt|instructions)",
-     "asks about the assistant's hidden instructions"),
-    (r"\b(reveal|print|repeat|output|dump)\s+(your|the)\s+(instructions|rules|prompt)",
-     "asks the assistant to reveal its instructions"),
-
+    (
+        r"\b(system|hidden|initial|original|secret)\s+(prompt|instructions)",
+        "asks about the assistant's hidden instructions",
+    ),
+    (
+        r"\b(reveal|print|repeat|output|dump)\s+(your|the)\s+(instructions|rules|prompt)",
+        "asks the assistant to reveal its instructions",
+    ),
     # role switching: "you are now ...", "developer mode", "jailbreak"
     (r"\byou\s+are\s+now\b", "tries to change the assistant's role"),
     (r"\b(developer|dan|god|admin)\s+mode\b", "tries to switch the assistant to a special mode"),
     (r"\bjailbreak", "jailbreak attempt"),
     (r"\bpretend\s+(to\s+be|you\s+are)\b", "tries to change the assistant's role"),
     (r"\bnew\s+instructions\s*:", "tries to give the assistant new instructions"),
-
     # hidden markup that could be used to fake a system message
     (r"<\s*/?\s*(system|script|assistant)\b", "contains suspicious markup"),
 ]
@@ -102,17 +106,15 @@ Examples:
 - "Write me a poem about cats" -> off_topic
 - "How long should I steep a French press?" -> safe"""
 
+
 # The guard's answer "form" (structured output).
 # Instead of free text, the LLM must fill in these two boxes,
 # so our code always gets a clear decision it can check.
 # Field(description=...) is what the LLM reads to know what goes in each box.
 class GuardDecision(BaseModel):
-    category: str = Field(
-        description='Exactly one of: "safe", "prompt_injection", "off_topic".'
-    )
-    reason: str = Field(
-        description="A short explanation of the decision, in a few words."
-    )
+    category: str = Field(description='Exactly one of: "safe", "prompt_injection", "off_topic".')
+    reason: str = Field(description="A short explanation of the decision, in a few words.")
+
 
 def check_message(message):
     """
@@ -132,6 +134,7 @@ def check_message(message):
 
     return True, ""
 
+
 def llm_check_message(message, llm):
     """
     The second, smarter check: ask an LLM whether the message is an attack.
@@ -145,10 +148,12 @@ def llm_check_message(message, llm):
     try:
         # 1. Ask the LLM to fill in the GuardDecision form
         guard = llm.with_structured_output(GuardDecision)
-        decision = guard.invoke([
-            SystemMessage(GUARD_SYSTEM_PROMPT),   # the rules: how to judge
-            HumanMessage(message),                # the message to judge
-        ])
+        decision = guard.invoke(
+            [
+                SystemMessage(GUARD_SYSTEM_PROMPT),  # the rules: how to judge
+                HumanMessage(message),  # the message to judge
+            ]
+        )
 
         # 2. Clean up the answer (lowercase, no extra spaces)
         category = decision.category.strip().lower()

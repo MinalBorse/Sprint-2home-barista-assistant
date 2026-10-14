@@ -27,13 +27,12 @@ from pydantic import BaseModel, Field
 from src.brew_methods import ANY, BREW_METHODS, GENERAL
 from src.chunk_tags import HISTORY, NONE, TASTE_PROBLEMS, TOPICS
 
-
 # ----------------------------------------------------------
 # Settings
 # ----------------------------------------------------------
-TRUSTED_SOURCE_TYPE = "own guide"   # our own, checked guides (not Wikipedia)
-TOP_K = 4                       # how many chunks to retrieve
-MAX_SEARCH_QUERY_LENGTH = 200   # a longer rewrite is suspicious, so we don't use it
+TRUSTED_SOURCE_TYPE = "own guide"  # our own, checked guides (not Wikipedia)
+TOP_K = 4  # how many chunks to retrieve
+MAX_SEARCH_QUERY_LENGTH = 200  # a longer rewrite is suspicious, so we don't use it
 
 
 # ==========================================================
@@ -41,23 +40,16 @@ MAX_SEARCH_QUERY_LENGTH = 200   # a longer rewrite is suspicious, so we don't us
 #         (query translation + structured retrieval)
 # ==========================================================
 
+
 # The SHAPE of the answer we want from the planner LLM.
 # Instead of free text, the LLM must fill in these two fields.
 # This is called "structured output". Pydantic describes the fields,
 # and the descriptions tell the LLM what to put in each one.
 class SearchPlan(BaseModel):
-    search_query: str = Field(
-        description="A short search query using standard coffee terms."
-    )
-    brew_method: str = Field(
-        description="The brew method the question is about, or 'any' if none is mentioned."
-    )
-    taste_problem: str = Field(
-        description="The taste problem described (bitter, sour, weak, strong, flat), or 'none'."
-    )
-    topic: str = Field(
-        description="The main topic of the question, or 'any' if unclear."
-    )
+    search_query: str = Field(description="A short search query using standard coffee terms.")
+    brew_method: str = Field(description="The brew method the question is about, or 'any' if none is mentioned.")
+    taste_problem: str = Field(description="The taste problem described (bitter, sour, weak, strong, flat), or 'none'.")
+    topic: str = Field(description="The main topic of the question, or 'any' if unclear.")
 
 
 PLANNER_SYSTEM_PROMPT = f"""You plan searches in a coffee knowledge base.
@@ -76,10 +68,12 @@ Return two things:
 4. topic: exactly one of: {", ".join(TOPICS)}, any.
    - Use "history" only when the user asks about inventors, dates or how something developed."""
 
-planner_prompt = ChatPromptTemplate.from_messages([
-    ("system", PLANNER_SYSTEM_PROMPT),
-    ("human", "{question}"),
-])
+planner_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", PLANNER_SYSTEM_PROMPT),
+        ("human", "{question}"),
+    ]
+)
 
 
 def plan_search(question, llm):
@@ -181,14 +175,15 @@ def to_source(document, distance, pinned=False):
         "source": document.metadata.get("source", ""),
         "brew_method": document.metadata.get("brew_method", ""),
         "topic": document.metadata.get("topic", ""),
-        "similarity": 1 - distance,     # Chroma gives distance; convert it
-        "pinned": pinned,               # True = added because of the taste problem
+        "similarity": 1 - distance,  # Chroma gives distance; convert it
+        "pinned": pinned,  # True = added because of the taste problem
         "text": document.page_content,
     }
 
 
-def retrieve(search_query, vector_store, k=TOP_K, brew_method=ANY,
-             trusted_only=False, hide_history=False, taste_problem=NONE):
+def retrieve(
+    search_query, vector_store, k=TOP_K, brew_method=ANY, trusted_only=False, hide_history=False, taste_problem=NONE
+):
     """
     Search Chroma and return a list of sources.
     The details come from the DATABASE, not from the AI,
@@ -250,10 +245,12 @@ Rules:
 4. Keep the answer short and practical.
 5. End with the sources you used, like: (Sources: troubleshooting guide). If you said you don't have information, do NOT list any sources."""
 
-answer_prompt = ChatPromptTemplate.from_messages([
-    ("system", ANSWER_SYSTEM_PROMPT),
-    ("human", "Coffee notes:\n{context}\n\nQuestion: {question}"),
-])
+answer_prompt = ChatPromptTemplate.from_messages(
+    [
+        ("system", ANSWER_SYSTEM_PROMPT),
+        ("human", "Coffee notes:\n{context}\n\nQuestion: {question}"),
+    ]
+)
 
 
 def generate_answer(question, sources, llm):
@@ -261,10 +258,12 @@ def generate_answer(question, sources, llm):
     Write the answer to the ORIGINAL question, using the retrieved chunks.
     """
     answer_chain = answer_prompt | llm
-    response = answer_chain.invoke({
-        "context": build_context(sources),
-        "question": question,
-    })
+    response = answer_chain.invoke(
+        {
+            "context": build_context(sources),
+            "question": question,
+        }
+    )
     return response.content
 
 

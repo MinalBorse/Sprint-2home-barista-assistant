@@ -20,8 +20,7 @@ from src.chunk_tags import tag_topics
 from src.document_loader import load_all_documents
 from src.document_splitter import split_all_documents
 from src.llm import get_llm
-from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION
-
+from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 print("==================== BUILDING THE KNOWLEDGE BASE ====================")
 print()

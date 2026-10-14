@@ -14,10 +14,10 @@
 #   This shows HOW the AI chooses a tool.
 # ==========================================================
 
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import HumanMessage, SystemMessage
+
 from src.llm import get_llm
 from src.tools import brew_ratio_calculator
-
 
 # ----------------------------------------------------------
 # SETUP

@@ -16,12 +16,13 @@ import re
 
 # Load .env FIRST, so USER_AGENT is set before the web loader starts
 from dotenv import load_dotenv
+
 load_dotenv()
 
 import bs4
 from langchain_community.document_loaders import DirectoryLoader, TextLoader, WebBaseLoader
-from src.knowledge_sources import LOCAL_DATA_FOLDER, TRUSTED_WEB_SOURCES
 
+from src.knowledge_sources import LOCAL_DATA_FOLDER, TRUSTED_WEB_SOURCES
 
 # Wikipedia sections that come AFTER the useful article text.
 # Everything from the first of these headings onward is removed.

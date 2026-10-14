@@ -11,8 +11,7 @@
 # ==========================================================
 
 from src.document_loader import load_all_documents
-from src.document_splitter import split_all_documents, CHUNK_SIZE, CHUNK_OVERLAP
-
+from src.document_splitter import CHUNK_OVERLAP, CHUNK_SIZE, split_all_documents
 
 # ----------------------------------------------------------
 # STEP 1: load (and clean) all documents

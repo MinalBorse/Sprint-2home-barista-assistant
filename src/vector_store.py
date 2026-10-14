@@ -18,8 +18,8 @@
 # ==========================================================
 
 from langchain_chroma import Chroma
-from src.embeddings import get_embeddings
 
+from src.embeddings import get_embeddings
 
 # The folder where Chroma saves everything on disk.
 # (It's in .gitignore, because it can always be rebuilt.)
@@ -43,16 +43,13 @@ def get_vector_store(collection_name):
     vector_store = Chroma(
         # Which "table" to use
         collection_name=collection_name,
-
         # The embedding model. Chroma uses it automatically:
         #   - when we ADD texts (to embed them once)
         #   - when we SEARCH (to embed the question)
         # Same model for both = Rule #1 from the embeddings lesson.
         embedding_function=get_embeddings(),
-
         # Save to disk, so the data survives after the script ends
         persist_directory=CHROMA_FOLDER,
-
         # Measure similarity with cosine (the angle between vectors)
         collection_metadata={"hnsw:space": "cosine"},
     )

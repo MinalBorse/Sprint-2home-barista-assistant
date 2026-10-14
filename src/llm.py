@@ -4,9 +4,9 @@
 # That way, if we change the model, we only change it in ONE place.
 
 import os
+
 from dotenv import load_dotenv
 from langchain_openai import ChatOpenAI
-
 
 # Load the values from the .env file (API key, model name)
 # into the environment, so os.getenv() can read them.

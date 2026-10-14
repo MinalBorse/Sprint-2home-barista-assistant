@@ -46,14 +46,14 @@ from src.tools import CALCULATOR_TOOLS
 @dataclass
 class UserPreferences:
     # --- Search preferences (structured retrieval) ---
-    brewer: str = ANY            # the user's own brew method, or "any"
-    trusted_only: bool = False   # search only our own guides (no Wikipedia)
-    hide_history: bool = False   # leave out history and trivia chunks
+    brewer: str = ANY  # the user's own brew method, or "any"
+    trusted_only: bool = False  # search only our own guides (no Wikipedia)
+    hide_history: bool = False  # leave out history and trivia chunks
 
     # --- Answer-style preferences (change HOW the answer is written) ---
-    experience: str = "beginner"   # "beginner" or "enthusiast"
-    units: str = "metric"          # "metric" or "imperial"
-    length: str = "short"          # "short" or "detailed"
+    experience: str = "beginner"  # "beginner" or "enthusiast"
+    units: str = "metric"  # "metric" or "imperial"
+    length: str = "short"  # "short" or "detailed"
 
 
 # ==========================================================
@@ -227,7 +227,7 @@ def ask_agent(agent, question, thread_id, preferences=None):
     for index in range(len(messages)):
         if isinstance(messages[index], HumanMessage):
             last_user_index = index
-    this_turn = messages[last_user_index + 1:]
+    this_turn = messages[last_user_index + 1 :]
 
     # Collect the tool calls the AI made, and match them with their results
     tool_calls = []
@@ -246,11 +246,13 @@ def ask_agent(agent, question, thread_id, preferences=None):
     for message in this_turn:
         if isinstance(message, AIMessage) and message.tool_calls:
             for call in message.tool_calls:
-                tool_calls.append({
-                    "name": call["name"],
-                    "args": call["args"],
-                    "result": results_by_id.get(call["id"], ""),
-                })
+                tool_calls.append(
+                    {
+                        "name": call["name"],
+                        "args": call["args"],
+                        "result": results_by_id.get(call["id"], ""),
+                    }
+                )
 
     # The final answer is the last AI message
     answer = ""

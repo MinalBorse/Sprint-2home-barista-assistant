@@ -13,9 +13,8 @@
 # ==========================================================
 
 from src.llm import get_llm
-from src.vector_store import get_vector_store, KNOWLEDGE_BASE_COLLECTION
-from src.rag import rewrite_query, retrieve
-
+from src.rag import retrieve, rewrite_query
+from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 SHOW_TOP = 3
 
@@ -29,7 +28,7 @@ def show_results(label, search_query):
     """Search and print the top results on short lines."""
     sources = retrieve(search_query, vector_store, k=SHOW_TOP)
 
-    print(f"   {label}: \"{search_query}\"")
+    print(f'   {label}: "{search_query}"')
     rank = 1
     for source in sources:
         name = source["title"]

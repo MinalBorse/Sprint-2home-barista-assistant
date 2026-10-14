@@ -13,9 +13,9 @@
 # At the end we'll see why that is not good enough.
 # ==========================================================
 
-from langchain_core.messages import SystemMessage, HumanMessage
-from src.llm import get_llm
+from langchain_core.messages import HumanMessage, SystemMessage
 
+from src.llm import get_llm
 
 # ==========================================================
 # STEP 1: the knowledge base
@@ -30,27 +30,25 @@ KNOWLEDGE_BASE = [
     {
         "source": "troubleshooting_guide",
         "text": "Bitter French press coffee is usually over-extracted. "
-                "Use a coarser grind and steep for about 4 minutes, not longer.",
+        "Use a coarser grind and steep for about 4 minutes, not longer.",
     },
     {
         "source": "troubleshooting_guide",
-        "text": "Sour coffee is usually under-extracted. "
-                "Try a finer grind, hotter water, or a longer brew time.",
+        "text": "Sour coffee is usually under-extracted. Try a finer grind, hotter water, or a longer brew time.",
     },
     {
         "source": "v60_guide",
         "text": "For a V60, use a medium-fine grind and water at 92 to 96 degrees Celsius. "
-                "Bloom the coffee with twice its weight in water for 30 to 45 seconds.",
+        "Bloom the coffee with twice its weight in water for 30 to 45 seconds.",
     },
     {
         "source": "beans_guide",
-        "text": "Light roasts keep more fruity and floral flavours. "
-                "Dark roasts taste more chocolatey and smoky.",
+        "text": "Light roasts keep more fruity and floral flavours. Dark roasts taste more chocolatey and smoky.",
     },
     {
         "source": "storage_guide",
         "text": "Store coffee beans in an airtight container away from light and heat. "
-                "Beans taste best within 2 to 4 weeks after the roast date.",
+        "Beans taste best within 2 to 4 weeks after the roast date.",
     },
 ]
 
@@ -150,10 +148,7 @@ def answer_with_rag(question):
     for note in notes:
         notes_text = notes_text + f"[{note['source']}] {note['text']}\n"
 
-    augmented_question = (
-        f"Coffee notes:\n{notes_text}\n"
-        f"Question: {question}"
-    )
+    augmented_question = f"Coffee notes:\n{notes_text}\nQuestion: {question}"
 
     print("STEP 4a - The prompt we send to the AI:")
     print(augmented_question)

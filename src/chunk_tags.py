@@ -14,7 +14,6 @@
 
 from pydantic import BaseModel, Field
 
-
 NONE = "none"
 
 # ----------------------------------------------------------
@@ -64,6 +63,7 @@ OTHER = "other"
 
 class TopicTag(BaseModel):
     """The shape of the LLM's answer: one topic name."""
+
     topic: str = Field(description="Exactly one of: " + ", ".join(TOPICS))
 
 
@@ -92,7 +92,7 @@ def tag_topics(chunks, llm):
     # return_exceptions=True: one failed chunk doesn't stop the others
     results = tagger.batch(prompts, config={"max_concurrency": 8}, return_exceptions=True)
 
-    for chunk, result in zip(chunks, results):
+    for chunk, result in zip(chunks, results, strict=True):
         topic = OTHER
         if isinstance(result, TopicTag):
             candidate = result.topic.strip().lower()

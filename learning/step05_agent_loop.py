@@ -15,10 +15,10 @@
 # REQUIREMENT: "Tool calling" (complete flow)
 # ==========================================================
 
-from langchain_core.messages import SystemMessage, HumanMessage, ToolMessage
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+
 from src.llm import get_llm
 from src.tools import brew_ratio_calculator
-
 
 # ----------------------------------------------------------
 # SETUP
@@ -62,7 +62,6 @@ print()
 # The AI can ask for more than one tool at once,
 # so we go through the requests one by one.
 for tool_call in first_response.tool_calls:
-
     # The inputs the AI wants to send,
     # for example {"coffee_grams": 15, "ratio": 16}
     tool_arguments = tool_call["args"]

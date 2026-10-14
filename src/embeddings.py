@@ -20,9 +20,9 @@
 # ==========================================================
 
 import os
+
 from dotenv import load_dotenv
 from langchain_openai import OpenAIEmbeddings
-
 
 # Load the values from the .env file
 load_dotenv()

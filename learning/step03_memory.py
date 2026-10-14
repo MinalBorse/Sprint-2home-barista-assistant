@@ -13,18 +13,16 @@
 # automatically. Here we do it by hand to understand it.
 # ==========================================================
 
-from langchain_core.messages import SystemMessage, HumanMessage
-from src.llm import get_llm
+from langchain_core.messages import HumanMessage, SystemMessage
 
+from src.llm import get_llm
 
 # Create the AI model
 llm = get_llm()
 
 # The system prompt: the bot's role and rules.
 # We reuse it in both tests below.
-system_prompt = SystemMessage(
-    "You are a friendly home barista assistant. Keep answers to 2 sentences."
-)
+system_prompt = SystemMessage("You are a friendly home barista assistant. Keep answers to 2 sentences.")
 
 # The two things the user says, in order
 first_user_message = "I brew with a V60 and use 15 g of coffee."
