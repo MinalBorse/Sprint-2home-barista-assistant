@@ -218,7 +218,7 @@ def show_barista_greeting(show_buttons):
     """
     with st.chat_message("assistant", avatar=ASSISTANT_AVATAR):
         st.markdown(
-            "Good evening, and welcome to **R Café**. What shall we brew today? "
+            "Good evening, and welcome to your **Home Barista Assistant**. What shall we brew today? "
             "Ask me anything about coffee, or choose one of these to begin:"
         )
         if not show_buttons:
@@ -245,9 +245,9 @@ def start_new_conversation():
 # ==========================================================
 # The page
 # ==========================================================
-st.set_page_config(page_title="R Café · Home Barista Assistant", page_icon=AVATAR_IMAGE)
+st.set_page_config(page_title="Home Barista Assistant", page_icon=AVATAR_IMAGE)
 
-# The R Café look (pure CSS and SVG, no images) - see src/theme.py
+# The app's look (pure CSS and SVG, no images) - see src/theme.py (pure CSS and SVG, no images) - see src/theme.py
 apply_cafe_theme()
 show_welcome_banner()
 
@@ -283,7 +283,7 @@ with st.sidebar:
     brewer_label = st.selectbox("My brewer", list(BREWER_CHOICES.keys()))
     st.caption("Questions that don't name a brewer will focus on yours.")
     trusted_only = st.toggle("Trusted guides only", value=False)
-    st.caption("Use only R Café's own checked guides, not Wikipedia.")
+    st.caption("Use only the assistant's own checked guides, not Wikipedia.")
     hide_history = st.toggle("Hide history and trivia", value=True)
     st.caption("Practical tips only. Ask about history and it's shown anyway.")
 

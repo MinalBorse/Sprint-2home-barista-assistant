@@ -1,12 +1,12 @@
 # ==========================================================
 # src/theme.py
 # ==========================================================
-# Purpose: the elegant "R Café" look - inspired by premium coffee
+# Purpose: the elegant "Home Barista Assistant" look - inspired by premium coffee
 # photography: dark slate surfaces, roasted beans, golden crema.
 #
 # Everything is drawn with code, no photos:
 #   - the page          -> espresso black with a very faint pattern of beans
-#   - the welcome card  -> the "R Café" wordmark in a refined serif,
+#   - the welcome card  -> the "Home Barista Assistant" wordmark in a refined serif,
 #                          with a hand-drawn cup of espresso seen from above
 #                          (SVG: shapes described in code)
 #   - gold details      -> thin champagne-gold lines and borders
@@ -239,7 +239,7 @@ HERO_HTML = """
 <div class="rc-hero">
   <div class="rc-hero-text">
     <div class="rc-eyebrow">Specialty coffee · Your home barista</div>
-    <div class="rc-wordmark">R Café</div>
+    <div class="rc-wordmark">Home Barista Assistant</div>
     <div class="rc-rule"></div>
     <div class="rc-welcome">
       Good evening, and welcome. Take a seat; I'll help you brew a better cup,
@@ -253,7 +253,7 @@ HERO_HTML = """
 # The brand block at the top of the sidebar
 SIDEBAR_BRAND_HTML = """
 <div class="rc-side-brand">
-  <div class="rc-side-name">R Café</div>
+  <div class="rc-side-name">Home Barista Assistant</div>
   <div class="rc-side-tag">Your home barista</div>
 </div>
 """
@@ -324,7 +324,7 @@ def background_css():
 
 
 def apply_cafe_theme():
-    """Add the R Café styling and logo. Call it once, near the top of app.py."""
+    """Add the Home Barista Assistant styling and logo. Call it once, near the top of app.py."""
     st.markdown(CAFE_CSS, unsafe_allow_html=True)
     st.markdown(background_css(), unsafe_allow_html=True)
     # st.logo fills the logo spot at the top of the sidebar
@@ -332,10 +332,10 @@ def apply_cafe_theme():
 
 
 def show_welcome_banner():
-    """Show the R Café welcome card at the top of the page."""
+    """Show the Home Barista Assistant welcome card at the top of the page."""
     st.markdown(HERO_HTML, unsafe_allow_html=True)
 
 
 def show_sidebar_brand():
-    """Show the R Café name at the top of the sidebar. Call it inside 'with st.sidebar'."""
+    """Show the Home Barista Assistant name at the top of the sidebar. Call it inside 'with st.sidebar'."""
     st.markdown(SIDEBAR_BRAND_HTML, unsafe_allow_html=True)
