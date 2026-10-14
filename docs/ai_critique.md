@@ -6,7 +6,7 @@ Reviewed 2026-10-14 by Claude Code. No source files were modified.
 This document has two parts:
 
 1. **[The AI report](#part-1-the-ai-report)**: 30 findings from Claude Code, with details and suggested fixes.
-2. **[My review of these findings](#part-2-my-review-of-these-findings)**: my assessment of each finding, the checks I ran, and three extra findings of my own.
+2. **[My review of these findings](#part-2-my-review-of-these-findings)**: my assessment of each finding, the checks I ran, the fixes I made, and four extra findings of my own.
 
 ---
 
@@ -331,13 +331,18 @@ This document has two parts:
 | Security tests | `python -m tests.step19_security` | 17/17, 7/7 unseen attacks, 0/6 false alarms |
 | Agent tests | `python -m tests.step18_agent` | 12/12 expected decisions, including 2 regression tests; found #33 |
 | App demo | `streamlit run app.py`, 5 questions | 5/5 correct; no deprecation warning (#29); found #32 |
+| #2 reproduction, **before** the fix | forced `retrieve` to raise (`A.retrieve = lambda *args, **kwargs: 1 / 0`), then asked two questions in one thread | crash: `ZeroDivisionError` escaped the agent; LangGraph's default tool error handler re-raised it |
+| #2 reproduction, **after** the fix | the same command | no crash: the error was logged, and the next message in the same conversation was answered normally; found #34 |
+| #15 after the fix | `(Select-String -Path src\agent.py -Pattern "If it doesn't cover the topic" -AllMatches).Matches.Count` | `1` |
+| #16, #17 after the fix | `Select-String -Path src\security.py, src\rag.py -Pattern "R Caf\|two things" -CaseSensitive` | no output |
+| #31 after the fix | printed the end of `AGENT_SYSTEM_PROMPT` | rule 10 ends `...not medical advice." in full.` |
 
 ## Verdict per finding
 
 | # | Finding (short) | Sev. | Assessment | My reasoning | Status |
 |---|---|---|---|---|---|
 | 1 | No automated test suite | High | ✅ real | the scripts check behaviour, but nothing fails automatically, `pytest` collects nothing, and nothing mocks the LLM | 🔲 open |
-| 2 | A tool exception can break a conversation | High | ⚠️ cause confirmed | `src/agent.py` has no `try/except` at all, so an error in `retrieve` (line 158) is not caught inside the tool. The conversation-breaking effect is still to reproduce | 🔍 checked (cause) |
+| 2 | A tool exception can break a conversation | High | ✅ real | reproduced: forcing `retrieve` to fail made a `ZeroDivisionError` escape the agent (LangGraph's default handler re-raised it). Fixed with `retrieve_safely()`: after the fix, the error is logged and the next message in the same conversation is answered normally | ✔️ fixed (ac39fa3) |
 | 3 | Build wipes the database before the new one is ready | Medium | ✅ real | confirmed: `reset_collection()` on line 73, `add_documents()` on line 86; offline builds also silently drop Wikipedia | 🔍 checked |
 | 4 | The evaluation does not measure the app | Medium | ✅ real | RAGAs scores `answer_with_rag()`, while the app answers through the agent | 🔲 open |
 | 5 | The A/B test mixes rewriting with filtering | Medium | ✅ real | `use_rewrite=False` also disables the brew filter and the taste pin, so the comparison measures the whole planner | 🔲 open |
@@ -350,9 +355,9 @@ This document has two parts:
 | 12 | Model Markdown (including remote images) rendered unfiltered | Low | ✅ real | a valid hardening point against data leaks through injected image links | 🔲 open |
 | 13 | Caffeine tool covers only 9 drinks | Low | ✅ real | the 5 newer brew methods are missing, so the model may estimate caffeine itself | 🔲 open |
 | 14 | Hatnote filter deletes lines starting "For the " | Low | ⚠️ to verify | plausible; to check against the cleaned Wikipedia text | 🔲 open |
-| 15 | Duplicated sentence in the agent prompt | Low | ✅ real | confirmed in rule 1 (`notes."If it doesn't...`); likely from the siphon fix | 🔍 checked |
-| 16 | Planner prompt says "two things", asks for four | Low | ✅ real | confirmed in `src/rag.py` line 57; comments and docstring are outdated too | 🔍 checked |
-| 17 | Guard prompt still says "R Café" | Low | ✅ real | confirmed in `src/security.py` lines 90 and 92; my rename only covered `app.py` and `src/theme.py` | 🔍 checked |
+| 15 | Duplicated sentence in the agent prompt | Low | ✅ real | confirmed in rule 1 (`notes."If it doesn't...`), likely from the siphon fix; rule 1 now contains the sentence once | ✔️ fixed (prompt-text commit "Fix prompt text...") |
+| 16 | Planner prompt says "two things", asks for four | Low | ✅ real | `src/rag.py` line 57 now says "four things"; some comments and the docstring still mention two fields | ✔️ fixed (prompt-text commit "Fix prompt text...") |
+| 17 | Guard prompt still says "R Café" | Low | ✅ real | renamed to "Home Barista Assistant" in `src/security.py` lines 90 and 92; `Select-String` finds no "R Café" | ✔️ fixed (3f95b1e) |
 | 18 | Duplicated, wrong comment in `app.py` | Low | ⚠️ to verify | to check line 245 | 🔲 open |
 | 19 | `step19` header says "No AI is used" | Low | ✅ real | Part 2 (the LLM guard tests) was added later without updating the header | 🔲 open |
 | 20 | Latte art labelled "off-topic" in the test set | Low | ✅ real | it is an on-topic gap in the knowledge base; its context scores should be reported separately | 🔲 open |
@@ -366,38 +371,39 @@ This document has two parts:
 | 28 | "..." always added to source previews | Low | ✅ real | cosmetic | 🔲 open |
 | 29 | `use_container_width` deprecated | Low | ❌ not reproduced | the app ran with Streamlit 1.65 and the starter buttons rendered with no deprecation warning in the terminal | 🔍 checked |
 | 30 | Chroma's private `_collection` attribute used | Low | ✅ real | one helper function would keep the private access in one place | 🔲 open |
-| 31 | *(found by me)* Rule 10 of the agent prompt opens a quotation mark that never closes | Low | ✅ real | confirmed by printing the prompt; cosmetic, the health note is still repeated correctly | 🔍 checked |
+| 31 | *(found by me)* Rule 10 of the agent prompt opens a quotation mark that never closes | Low | ✅ real | rule 10 now ends `...not medical advice." in full.` | ✔️ fixed (prompt-text commit "Fix prompt text...") |
 | 32 | *(found by me)* The agent can drop the brewer name when writing its search question ("V60" lost), so no brew filter is applied | Low | ✅ real | seen in the app demo; in `step18` the same question kept "V60", so it varies between runs. The taste boost still found the right section | 🔍 checked |
 | 33 | *(found by me)* The model sometimes cites a source title that doesn't exist ("French press brewing guide") | Low | ✅ real | seen in `step18`; the Sources panel uses database metadata, so users still see the correct sources | 🔍 checked |
+| 34 | *(found by me)* When the search fails, the agent says "I don't have information" and adds general tips from its own memory, instead of saying the knowledge base is unavailable | Low | ✅ real | seen while testing the #2 fix; the conversation keeps working, but the wording is misleading and the tips are not grounded. Next step: make the tool's error text tell the agent exactly what to say | 🔍 checked |
 
 ## Summary so far
 
 | | Count |
 |---|---|
 | Findings in the AI report | 30 |
-| Extra findings I found myself | 3 (#31, #32, #33) |
-| ✅ Real (including 2 latent) | 24 |
-| ⚠️ Cause confirmed, effect still to reproduce | 1 (#2) |
+| Extra findings I found myself | 4 (#31–#34) |
+| ✅ Real (including 2 latent) | 26 |
 | ⚠️ Still to verify | 3 (#11, #14, #18) |
 | ❌ Not reproduced | 2 (#6, #29) |
 | 🟡 Partly a design choice | 1 (#9) |
 | 📝 Already known | 2 (#7, #8) |
-| 🔍 Checked so far | 10 |
-| ✔️ Fixed so far | 0 |
+| ✔️ Fixed so far | 5 (#2, #15, #16, #17, #31) |
 
 ## Planned fixes, in order
 
-| Order | Findings | Why this order |
-|---|---|---|
-| 1 | #15, #16, #17, #31: prompt text fixes | quick, low risk, and they affect what the model reads on every call |
-| 2 | #2: catch errors inside the search tool | the most serious open finding; same principle as the calculators, which already return error messages |
-| 3 | #3: build into a new collection, then switch | protects a working knowledge base from a failed rebuild |
-| 4 | #4, #5: honest evaluation wording, then optionally a cleaner A/B test | so the evaluation claims match what was measured |
-| 5 | #1: `pytest` tests with mocked LLM calls | turns the existing checks into tests that can fail automatically |
+| Order | Findings | Why this order | Status |
+|---|---|---|---|
+| 1 | #15, #16, #17, #31: prompt text fixes | quick, low risk, and they affect what the model reads on every call | ✔️ done |
+| 2 | #2: catch errors inside the search tool | the most serious open finding; same principle as the calculators, which already return error messages | ✔️ done |
+| 3 | #34: clearer wording when the search fails | follows directly from the #2 fix | next |
+| 4 | #3: build into a new collection, then switch | protects a working knowledge base from a failed rebuild | planned |
+| 5 | #4, #5: honest evaluation wording, then optionally a cleaner A/B test | so the evaluation claims match what was measured | planned |
+| 6 | #1: `pytest` tests with mocked LLM calls | turns the existing checks into tests that can fail automatically | planned |
 
 ## What this review taught me
 
 - **Most findings were real**, which shows the value of a second reviewer, even an AI one.
 - **Two findings were not reproduced (#6, #29)**: the AI's reasoning was sensible, but testing showed no problem. Verifying before fixing avoided unnecessary changes.
-- **I found three issues the AI missed (#31–#33)** while running my own checks: the AI review and my testing complement each other.
+- **I found four issues the AI missed (#31–#34)** while running my own checks: the AI review and my testing complement each other.
 - **Several findings are prompt text drifting** as the project grew (#15, #16, #17, #31): a reason to keep all prompts in one module.
+- **Reproduce before and after fixing.** For #2, I first made the failure happen on purpose (a crash), then ran the same test after the fix (no crash, and the conversation continued). The second run also revealed #34, a smaller issue in how the agent words the failure.
