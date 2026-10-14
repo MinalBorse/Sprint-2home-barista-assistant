@@ -114,6 +114,22 @@ def personalised_prompt(request: ModelRequest) -> str:
 # ==========================================================
 # Tool 4: RAG as a tool
 # ==========================================================
+def retrieve_safely(*args, **kwargs):
+    """
+    Call retrieve(), but never let an error escape the search tool.
+
+    If the knowledge base can't be searched (for example, a network error),
+    an unhandled error would leave the conversation with a tool request that
+    never got an answer, which breaks every later message in that chat.
+    Returning None lets the tool send a friendly error message instead,
+    just like the calculator tools do.
+    """
+    try:
+        return retrieve(*args, **kwargs)
+    except Exception as error:
+        print("ERROR in the knowledge search:", error)
+        return None
+
 def make_search_tool(vector_store, llm):
     """
     Create the knowledge-search tool.
@@ -154,7 +170,7 @@ def make_search_tool(vector_store, llm):
         # the question wins and history is shown anyway
         plan["hide_history"] = preferences.hide_history and plan["topic"] != HISTORY
 
-        sources = retrieve(
+        sources = retrieve_safely(
             plan["search_query"],
             vector_store,
             brew_method=plan["brew_method"],
@@ -162,7 +178,8 @@ def make_search_tool(vector_store, llm):
             hide_history=plan["hide_history"],
             taste_problem=plan["taste_problem"],
         )
-
+        if sources is None:
+            return "Error: the coffee knowledge base is unavailable right now. Please try again in a moment.", {"plan": plan, "sources": []}
         if not sources:
             return "No relevant coffee notes were found.", {"plan": plan, "sources": []}
 
