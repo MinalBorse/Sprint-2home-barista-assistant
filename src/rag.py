@@ -54,7 +54,7 @@ class SearchPlan(BaseModel):
 
 PLANNER_SYSTEM_PROMPT = f"""You plan searches in a coffee knowledge base.
 
-Return two things:
+Return four things:
 1. search_query: the user's question rewritten as a short search query.
    - Use standard coffee terms. Taste problems should use words like: bitter, sour, weak, watery, strong, flat, stale, over-extracted, under-extracted.
    - Always replace slang or vague taste words with standard coffee terms: "meh" becomes flat, "puckery" becomes sour, "thin" becomes weak. "Stovetop thing" becomes moka pot.
