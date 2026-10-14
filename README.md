@@ -434,7 +434,7 @@ All artwork (the bean emblem, the avatar, the top-down espresso cup, the coffee-
 ---
 
 ## 9. Evaluation and testing
-
+The full test strategy (every layer, how to run it, expected results, when to re-run, and a dated results log) is in [docs/TESTING.md](docs/TESTING.md).
 ### Retrieval methods compared (`tests/step09_hybrid_eval.py`, 6 labelled questions)
 
 | Method | #1 correct | Precision@2 | Recall@2 |
@@ -593,6 +593,7 @@ home-barista-assistant/
 ├── docs/
 │   ├── codebase_map.html       # interactive map of every file
 │   └── ai_critique.md          # AI code review, my verdicts and checks
+    │   └── TESTING.md              # test strategy, commands, expected results, results log
 ├── eval_results/               # RAGAs results, one CSV per mode
 ├── src/
 │   ├── llm.py                  # get_llm()
