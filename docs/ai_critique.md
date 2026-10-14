@@ -6,7 +6,7 @@ Reviewed 2026-10-14 by Claude Code. No source files were modified.
 This document has two parts:
 
 1. **[The AI report](#part-1-the-ai-report)**: 30 findings from Claude Code, with details and suggested fixes.
-2. **[My review of these findings](#part-2-my-review-of-these-findings)**: my assessment of each finding, the checks I ran, the fixes I made, and four extra findings of my own.
+2. **[My review of these findings](#part-2-my-review-of-these-findings)**: my assessment of each finding, the checks I ran, the fixes I made, and five extra findings of my own.
 
 ---
 
@@ -297,6 +297,8 @@ This document has two parts:
 
 **Baseline checks (2026-10-14):** `ruff check` passed · tool tests 14/14 · security 17/17, unseen attacks 7/7, 0 false alarms · agent tests 12/12 (including 2 regression tests) · app demo 5/5 · knowledge base 160 chunks, every brew method covered, one section per taste problem.
 
+**Re-run after the fixes (2026-10-14):** security 17/17, unseen attacks 7/7, 0 false alarms · agent tests 12/12, including both regression tests · app demo: 5/5 correct answers; one phrasing ("tell me about latte art") skipped the search tool (#35). The fixes changed no tested decisions.
+
 ## Legend
 
 | Assessment | Meaning |
@@ -336,6 +338,10 @@ This document has two parts:
 | #15 after the fix | `(Select-String -Path src\agent.py -Pattern "If it doesn't cover the topic" -AllMatches).Matches.Count` | `1` |
 | #16, #17 after the fix | `Select-String -Path src\security.py, src\rag.py -Pattern "R Caf\|two things" -CaseSensitive` | no output |
 | #31 after the fix | printed the end of `AGENT_SYSTEM_PROMPT` | rule 10 ends `...not medical advice." in full.` |
+| Security re-run after the fixes | `python -m tests.step19_security` | 17/17, 7/7, 0/6 false alarms: unchanged (some block reasons worded differently, same decisions) |
+| Agent re-run after the fixes | `python -m tests.step18_agent` | 12/12 expected decisions, including both regression tests; the French press answer now cited real sources (#33 is random variation) |
+| App demo re-run after the fixes | `streamlit run app.py`, 5 questions | 5/5 correct answers; "tell me about latte art" showed "Answered directly", found #35 |
+| #35: does the search get skipped? | `ask_agent()` in 3 fresh conversations: "How do I make latte art?" twice, "tell me about latte art" once | "How do I make..." searched 2 of 2 times; "tell me about..." skipped the search (2 of 2 including the app) |
 
 ## Verdict per finding
 
@@ -375,14 +381,15 @@ This document has two parts:
 | 32 | *(found by me)* The agent can drop the brewer name when writing its search question ("V60" lost), so no brew filter is applied | Low | ✅ real | seen in the app demo; in `step18` the same question kept "V60", so it varies between runs. The taste boost still found the right section | 🔍 checked |
 | 33 | *(found by me)* The model sometimes cites a source title that doesn't exist ("French press brewing guide") | Low | ✅ real | seen in `step18`; the Sources panel uses database metadata, so users still see the correct sources | 🔍 checked |
 | 34 | *(found by me)* When the search fails, the agent says "I don't have information" and adds general tips from its own memory, instead of saying the knowledge base is unavailable | Low | ✅ real | seen while testing the #2 fix; the conversation keeps working, but the wording is misleading and the tips are not grounded. Next step: make the tool's error text tell the agent exactly what to say | 🔍 checked |
+| 35 | *(found by me)* "tell me about latte art" is answered **without searching** ("Answered directly"), breaking rule 1 | Low | ✅ real | repeatable for this phrasing: 2 of 2 times (app demo + a fresh-conversation test), while "How do I make latte art?" searched 2 of 2 times. Likely cause: rule 1 lists specific topics (brewing, beans, roasting, taste problems, equipment), and milk drinks aren't among them. The answer was still correct, because the guides don't cover latte art | 🔍 checked |
 
 ## Summary so far
 
 | | Count |
 |---|---|
 | Findings in the AI report | 30 |
-| Extra findings I found myself | 4 (#31–#34) |
-| ✅ Real (including 2 latent) | 26 |
+| Extra findings I found myself | 5 (#31–#35) |
+| ✅ Real (including 2 latent) | 27 |
 | ⚠️ Still to verify | 3 (#11, #14, #18) |
 | ❌ Not reproduced | 2 (#6, #29) |
 | 🟡 Partly a design choice | 1 (#9) |
@@ -399,11 +406,13 @@ This document has two parts:
 | 4 | #3: build into a new collection, then switch | protects a working knowledge base from a failed rebuild | planned |
 | 5 | #4, #5: honest evaluation wording, then optionally a cleaner A/B test | so the evaluation claims match what was measured | planned |
 | 6 | #1: `pytest` tests with mocked LLM calls | turns the existing checks into tests that can fail automatically | planned |
+| 7 | #35: widen rule 1 to "every coffee question", and add "tell me about latte art" to `step18` as a regression test | the same kind of under-calling as the earlier siphon bug | planned |
 
 ## What this review taught me
 
 - **Most findings were real**, which shows the value of a second reviewer, even an AI one.
 - **Two findings were not reproduced (#6, #29)**: the AI's reasoning was sensible, but testing showed no problem. Verifying before fixing avoided unnecessary changes.
-- **I found four issues the AI missed (#31–#34)** while running my own checks: the AI review and my testing complement each other.
+- **I found five issues the AI missed (#31–#35)** while running my own checks: the AI review and my testing complement each other.
 - **Several findings are prompt text drifting** as the project grew (#15, #16, #17, #31): a reason to keep all prompts in one module.
 - **Reproduce before and after fixing.** For #2, I first made the failure happen on purpose (a crash), then ran the same test after the fix (no crash, and the conversation continued). The second run also revealed #34, a smaller issue in how the agent words the failure.
+- **Re-test after every change, and vary the phrasing.** Re-running all tests after the fixes proved no decision changed, and asking the same thing in a different way ("tell me about..." instead of "How do I make...") revealed #35: the agent follows the exact wording of its rules, including their gaps.

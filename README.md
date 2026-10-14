@@ -12,6 +12,7 @@ Built for **Turing College, AI Engineering, Sprint 2**: *Building Applications w
 | **Knowledge base** | 2 guides I wrote + 6 openly licensed Wikipedia pages → **160 labelled chunks** |
 | **Tools** | knowledge search (RAG) · brew ratio calculator (both directions) · caffeine estimator · cost per cup |
 | **Security** | 7 layers, including a pattern guard and an LLM guard (7/7 unseen attacks blocked, 0 false alarms) |
+| **Code quality** | dependencies managed with `uv` (`pyproject.toml` + `uv.lock`) · `ruff` lint and format · an AI code review with every finding assessed ([docs/ai_critique.md](docs/ai_critique.md)) |
 | **Course requirements** | all 16 core requirements ✅ · bonus (2 medium + 1 hard) ✅ · [full checklist](#15-course-requirements-done-and-not-done) |
 
 ---
@@ -267,13 +268,11 @@ flowchart TB
 Chroma filter built by `build_filter()`:
 
 ```python
-{
-    "$and": [
-        {"brew_method": {"$in": ["moka pot", "general"]}},  # this method + general tips
-        {"source_type": "own guide"},  # "Trusted guides only"
-        {"topic": {"$ne": "history"}},  # "Hide history and trivia"
-    ]
-}
+{"$and": [
+    {"brew_method": {"$in": ["moka pot", "general"]}},   # this method + general tips
+    {"source_type": "own guide"},                         # "Trusted guides only"
+    {"topic": {"$ne": "history"}},                        # "Hide history and trivia"
+]}
 ```
 
 | Design choice | Reason |
@@ -302,16 +301,12 @@ The chat runs on an **agent** built with LangChain's `create_agent`. For each me
 
 ```python
 agent = create_agent(
-    model=llm,  # the chat model (get_llm)
-    tools=[
-        search_coffee_knowledge,  # RAG
-        brew_ratio_calculator,
-        caffeine_estimator,
-        cost_per_cup,
-    ],
-    middleware=[personalised_prompt],  # builds the system prompt before every model call
-    checkpointer=InMemorySaver(),  # memory, one thread per session
-    context_schema=UserPreferences,  # sidebar preferences, per request
+    model=llm,                              # the chat model (get_llm)
+    tools=[search_coffee_knowledge,         # RAG
+           brew_ratio_calculator, caffeine_estimator, cost_per_cup],
+    middleware=[personalised_prompt],       # builds the system prompt before every model call
+    checkpointer=InMemorySaver(),           # memory, one thread per session
+    context_schema=UserPreferences,         # sidebar preferences, per request
 )
 ```
 
@@ -475,19 +470,26 @@ flowchart LR
 
 **What the two runs show:**
 - **better guides raised the baseline:** recall without rewriting went from 0.78 to 0.90
-- **rewriting now mainly improves precision:** 0.68 → 0.82 (*"meh"*: 0.42 → 1.00)
+- **the planner now mainly improves precision:** 0.68 → 0.82 (*"meh"*: 0.42 → 1.00)
 - **the faithfulness drop is mostly one row:** an espresso answer scored 0.25, but on inspection every piece of advice was in the guides, and precision and recall were 1.00. The judge had counted the user's own description, repeated in the answer, as unsupported claims. With 10 questions, one answer moves an average by up to 0.1, so low-scoring rows are always inspected before changing anything.
 - the latte art row scores 0 on relevancy, precision and recall **by design**: the bot correctly refused (faithfulness 1.00)
+
+**Two honest caveats** (found in the AI code review, findings #4 and #5):
+- the *"without query rewriting"* mode also switches off the planner's **brew filter and taste boost**, so this A/B test compares the **whole planner** (rewriting + filters + boost) against plain search, not rewriting alone
+- RAGAs evaluates the **RAG chain** (`answer_with_rag()`), which shares the planner and retrieval with the app, but the app's **answers** are written by the agent with its own prompt. Retrieval scores transfer; answer scores only partly
 
 ### Automated tests
 
 | Script | Checks | Result |
 |---|---|---|
+| `uv run ruff check .` | PEP 8 style, import order, common bug patterns | **All checks passed** |
 | `python -m tests.step17_tools` | all 3 calculators, including bad inputs and both directions | **14 passed** |
 | `python -m tests.step18_agent` | tool choice, two tools at once, memory, off-topic, prompt extraction, **regression tests** (the siphon refusal, the one-way ratio tool) | **12 scenarios, all correct** |
 | `python -m tests.step19_security` | pattern guard + both guards together | **17 / 17**, **7 / 7**, **0** false alarms |
 | `python -m tests.step15_query_translation` | original vs rewritten queries | see section 5 |
 | `python -m tests.step16_structured_retrieval` | results with and without the brew filter | on the test questions, the filter never removed a relevant chunk |
+
+All results above were **re-run on 2026-10-14 after the review fixes**, and no tested decision changed.
 
 **Bugs found by testing, and fixed:**
 
@@ -496,6 +498,24 @@ flowchart LR
 | the agent refused siphon questions **without searching** (under-calling) | the search tool's description didn't list the covered brew methods | list every method in the description; *"never refuse without searching first"* | regression test in `step18` |
 | *"I want 300 ml, how much coffee?"* forced the model to do maths itself | the tool only worked coffee → water | the tool works both ways, exactly one amount required | `step17` + `step18` |
 | *"puckery"* wasn't rewritten | the rewriting rule only gave examples | firmer rule: *"X becomes Y"* | `step15` |
+| a failed knowledge search **crashed** the agent, and could break the conversation | the search tool had no `try/except`; LangGraph's default handler re-raises such errors | `retrieve_safely()` catches the error and the tool returns a friendly error message, like the calculators | reproduced before and after the fix by forcing `retrieve` to fail |
+
+### AI code review
+
+I ran a code review with **Claude Code** and assessed every finding myself, with a check or a test for each:
+
+| | Count |
+|---|---|
+| findings from the AI | 30 |
+| extra findings I found while checking | 5 |
+| real | 27 |
+| not reproduced when tested | 2 |
+| partly a deliberate design choice | 1 |
+| fixed so far | 5 (the search tool crash above, plus four prompt-text issues) |
+
+Two examples of why each finding was verified before fixing: the AI suspected that "filter" and "drip" questions were misrouted to pour-over, but the planner routed all four test questions correctly, twice. And while re-testing after the fixes, I found that *"tell me about latte art"* is answered **without searching**, while *"How do I make latte art?"* searches (2 of 2 times each), because rule 1 lists specific topics and milk drinks aren't among them.
+
+The full report, my verdict on every finding, the exact commands I ran, and the planned fixes are in [docs/ai_critique.md](docs/ai_critique.md).
 
 ---
 
@@ -561,9 +581,9 @@ home-barista-assistant/
 ├── build_knowledge_base.py     # builds chroma_db/ (run once, and after source changes)
 ├── evaluate_rag.py             # RAGAs A/B evaluation
 ├── README.md
-├── requirements.txt
-    ├──pyproject.toml              # the project and its 15 direct dependencies
-    ├──uv.lock 
+├── pyproject.toml              # the project and its 15 direct dependencies, plus ruff settings
+├── uv.lock                     # exact versions of all 148 packages (uv sync)
+├── requirements.txt            # generated from uv.lock, for pip users
 ├── .env.example                # copy to .env and add your key
 ├── .streamlit/config.toml      # base theme colours
 ├── assets/                     # bean emblem, avatar, background (drawn in Python)
@@ -571,7 +591,8 @@ home-barista-assistant/
 │   ├── troubleshooting_guide.md
 │   └── brewing_guide.md
 ├── docs/
-│   └── codebase_map.html       # interactive map of every file
+│   ├── codebase_map.html       # interactive map of every file
+│   └── ai_critique.md          # AI code review, my verdicts and checks
 ├── eval_results/               # RAGAs results, one CSV per mode
 ├── src/
 │   ├── llm.py                  # get_llm()
@@ -604,8 +625,9 @@ git clone <this-repository-url>
 cd home-barista-assistant
 uv sync                          # creates .venv with the exact versions from uv.lock
 .venv\Scripts\activate          # Windows  (macOS/Linux: source .venv/bin/activate)
-Without uv: `pip install -r requirements.txt` (generated from `uv.lock` with `uv export`).
 ```
+
+Without uv: `pip install -r requirements.txt` (generated from `uv.lock` with `uv export`).
 
 ### 2. Configure
 
@@ -637,9 +659,11 @@ Open http://localhost:8501. Keep that terminal for Streamlit and use a second on
 ### 5. Run the tests and the evaluation
 
 ```powershell
-python -m tests.step17_tools
-python -m tests.step18_agent
-python -m tests.step19_security
+uv run ruff check .               # style and bug patterns (free, instant)
+uv run ruff format .              # tidy the layout
+python -m tests.step17_tools      # free, instant
+python -m tests.step18_agent      # live model, a few cents
+python -m tests.step19_security   # part 1 free, part 2 uses the LLM guard
 python evaluate_rag.py            # a few minutes, a few cents
 ```
 
@@ -657,7 +681,8 @@ Scripts in `learning/` and `tests/` are run as modules (`python -m folder.script
 | **headings kept inside chunks** | headings only as metadata | only text is embedded, so heading synonyms must be in the text |
 | **keyword labels for chunks, an LLM for questions** | the same method for both | headings are predictable; user language isn't |
 | **empty the collection before each build** | incremental updates | removed or renamed sections can never leave stale chunks; costs under a cent |
-| **an agent for the app, a fixed chain for RAGAs** | the agent everywhere | RAGAs measures retrieval and grounding without the agent's choices in the way |
+| **an agent for the app, a fixed chain for RAGAs** | the agent everywhere | RAGAs measures retrieval and grounding without the agent's choices in the way; the trade-off is that the agent's own answer wording isn't scored (see section 14) |
+| **`uv` + `ruff`** | `pip` and no linter | one command reproduces the exact environment; style and common bugs are checked automatically |
 | **preferences as runtime context** | preferences in the message | can't be overridden by user text; never stored in the history |
 | **two input guards, cheapest first** | only one guard | patterns are free and instant; the LLM guard catches what patterns can't |
 | **the LLM guard fails open** | fail closed | a network hiccup shouldn't block every user; other layers still protect |
@@ -677,10 +702,17 @@ Scripts in `learning/` and `tests/` are run as modules (`python -m folder.script
 | **one topic label per chunk** | the French press introduction (a definition with dates) was tagged history | several labels per chunk, or a stricter tagging rule |
 | **LLM variability** | rewrites changed between runs; the RAGAs judge misjudged one answer | re-run tests after every change; run evaluations several times |
 | **small test sets** | 10 RAGAs questions, 6 retrieval questions | grow the test sets; save retrieved contexts in the RAGAs CSV |
-| **memory is lost on restart** | `InMemorySaver` | `SqliteSaver` |
-| **agent tests are checked by reading** | `step18` prints expected vs actual | automatic PASS/FAIL like `step17` and `step19` |
+| **memory is lost on restart, and never trimmed** | `InMemorySaver`, shared by all sessions; long chats re-send the whole history | `SqliteSaver`, plus trimming or summarising old messages |
+| **the evaluation doesn't fully measure the app** | RAGAs scores the RAG chain, not the agent; the A/B test changes the planner, not only rewriting (review #4, #5) | evaluate through `ask_agent()`; add a mode that changes only the rewrite |
+| **a failed rebuild empties the knowledge base** | `reset_collection()` runs before `add_documents()` (review #3) | build into a new collection, then switch |
+| **some phrasings skip the search** | *"tell me about latte art"* answered without searching, 2 of 2 times (review #35) | widen rule 1 to every coffee question; add a regression test |
+| **failed searches are worded as missing information** | after the crash fix, a failed search reads as *"I don't have information"* plus general tips (review #34) | make the tool's error text tell the agent exactly what to say |
+| **Wikipedia is fetched live at build time** | the source list controls which pages, not their content at that moment (review #10) | save reviewed snapshots in `data/` |
+| **no real automated test suite** | the test scripts print PASS/FAIL but never fail, and nothing mocks the LLM (review #1) | `pytest` tests with mocked LLM calls; tool-selection accuracy scores like the course's Lab 2 |
 | **no login or rate limiting** | anyone with access could use the API budget | user accounts and per-user limits |
 | **leftover Wikipedia editor notes** | `[circular reference]` markers remain | extend the cleaner to all bracketed notes |
+
+The full list of review findings and planned fixes is in [docs/ai_critique.md](docs/ai_critique.md).
 
 Further ideas: token usage and cost display, conversation export (JSON/CSV), a model selector, a CRAG-style relevance grader, step-back queries for extraction questions, a parent document retriever for long Wikipedia pages, a personal coffee journal (SQLite + two agent tools).
 
@@ -807,13 +839,13 @@ This section follows the Sprint 2 project page item by item.
 |---|---|---|
 | Understands the basic principles of how RAG works | ✅ | the two-phase pipeline ([sections 3–5](#3-how-one-question-is-answered)); retrieval methods compared; RAGAs |
 | Can explain tool calling implementation clearly | ✅ | the agent loop ([section 6](#6-the-agent-and-its-tools)); `learning/step04` and `step05` by hand vs. `create_agent` |
-| Demonstrates good code organisation practices | ✅ | one area per file, shared doorways, `learning/` and `tests/` folders, [`docs/codebase_map.html`](docs/codebase_map.html) |
-| Can identify potential error scenarios and edge cases | ✅ | fallbacks and validation; the keyword-order traps; three bugs found by testing ([section 9](#9-evaluation-and-testing)) |
+| Demonstrates good code organisation practices | ✅ | one area per file, shared doorways, `uv` with a lockfile, `ruff` lint and format, `learning/` and `tests/` folders, [`docs/codebase_map.html`](docs/codebase_map.html) |
+| Can identify potential error scenarios and edge cases | ✅ | fallbacks and validation; the keyword-order traps; bugs found by testing, including the search tool crash reproduced before and after its fix ([section 9](#9-evaluation-and-testing)) |
 | Knows how to use a front-end library | ✅ | Streamlit chat, caching, session state, status, custom theme ([section 8](#8-the-user-interface)) |
 | The project works as intended | ✅ | chat with the app; all automated tests pass |
 | Has created a relevant knowledge base for their domain | ✅ | trusted sources, cleaned and labelled; gaps found and filled ([section 4](#4-building-the-knowledge-base)) |
 | Has implemented appropriate security considerations | ✅ | 7 layers, measured ([section 7](#7-security)) |
-| Understands the potential problems with the application | ✅ | [section 14](#14-known-limitations-and-next-steps) |
+| Understands the potential problems with the application | ✅ | [section 14](#14-known-limitations-and-next-steps) and the AI code review: 35 findings assessed ([docs/ai_critique.md](docs/ai_critique.md)) |
 | Can offer suggestions on improving the code and the project | ✅ | [section 14](#14-known-limitations-and-next-steps), each based on a measurement or observation |
 
 ### Topics from the project page
