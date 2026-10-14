@@ -556,6 +556,8 @@ home-barista-assistant/
 ├── evaluate_rag.py             # RAGAs A/B evaluation
 ├── README.md
 ├── requirements.txt
+    ├──pyproject.toml              # the project and its 15 direct dependencies
+    ├──uv.lock 
 ├── .env.example                # copy to .env and add your key
 ├── .streamlit/config.toml      # base theme colours
 ├── assets/                     # bean emblem, avatar, background (drawn in Python)
@@ -594,9 +596,9 @@ home-barista-assistant/
 ```powershell
 git clone <this-repository-url>
 cd home-barista-assistant
-uv venv
+uv sync                          # creates .venv with the exact versions from uv.lock
 .venv\Scripts\activate          # Windows  (macOS/Linux: source .venv/bin/activate)
-uv pip install -r requirements.txt
+Without uv: `pip install -r requirements.txt` (generated from `uv.lock` with `uv export`).
 ```
 
 ### 2. Configure
