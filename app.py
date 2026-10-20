@@ -30,13 +30,15 @@
 #   - "Add relevant security measures for your domain" (input guard)
 # ==========================================================
 
+import os
 import uuid
 
 import streamlit as st
 
-from src.agent import UserPreferences, ask_agent, build_agent
+from src.agent import AGENT_SYSTEM_PROMPT, UserPreferences, ask_agent, build_agent, style_instructions
 from src.brew_methods import ANY, BREW_METHODS
 from src.llm import get_llm
+from src.rag import PLANNER_SYSTEM_PROMPT
 from src.security import BLOCKED_REPLY, check_message, llm_check_message
 from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
@@ -287,6 +289,17 @@ with st.sidebar:
     experience = st.radio("Experience", ["Beginner", "Enthusiast"], horizontal=True)
     units = st.radio("Units", ["Metric", "Imperial"], horizontal=True)
     length = st.radio("Answer length", ["Short", "Detailed"], horizontal=True)
+
+
+    if os.getenv("DEV_MODE", "false").lower() == "true":
+        st.header("Developer settings")
+        with st.expander("Agent system prompt"):
+            current_style = style_instructions(UserPreferences(
+                experience=experience.lower(), units=units.lower(), length=length.lower()))
+            st.code(AGENT_SYSTEM_PROMPT + "\n\nAnswer style for this user:\n" + current_style,
+                    language=None, wrap_lines=True)
+        with st.expander("Search planner prompt"):
+            st.code(PLANNER_SYSTEM_PROMPT, language=None, wrap_lines=True)
 
     st.header("On the menu tonight")
     st.markdown(
