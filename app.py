@@ -40,7 +40,7 @@ from src.agent import AGENT_SYSTEM_PROMPT, UserPreferences, ask_agent, build_age
 from src.brew_methods import ANY, BREW_METHODS
 from src.document_splitter import CHUNK_OVERLAP, CHUNK_SIZE, MIN_CHUNK_CHARACTERS
 from src.llm import get_llm
-from src.rag import PLANNER_SYSTEM_PROMPT, TOP_K
+from src.rag import PLANNER_SYSTEM_PROMPT, TOP_K, build_filter
 from src.security import (
     BLOCKED_REPLY,
     GUARD_CATEGORIES,
@@ -204,13 +204,33 @@ def show_sources(sources):
             st.text(source["text"][:300] + "...")
             st.divider()
 
+def show_request_trace(message):
+    """Developer view: the plan, the Chroma filters and how each card was found."""
+    if os.getenv("DEV_MODE", "false").lower() != "true" or not message.get("plans"):
+        return
+    with st.expander("Developer: request trace"):
+        for plan in message["plans"]:
+            st.markdown("**1. The plan (4 boxes)**")
+            st.json({key: plan.get(key) for key in ["search_query", "brew_method", "taste_problem", "topic"]})
+            if plan.get("used_my_brewer"):
+                st.caption("The brew method came from My brewer, because the question named none.")
+            st.markdown("**2. The Chroma filters**")
+            if plan.get("taste_problem", "none") != "none":
+                st.write("Taste boost:", {"taste_problem": plan["taste_problem"]})
+            normal_filter = build_filter(plan.get("brew_method", "any"), plan.get("trusted_only", False),
+                                         plan.get("hide_history", False))
+            st.write("Normal search:", normal_filter or "no filter: all chunks searched")
+        st.markdown("**3. The cards**")
+        for source in message.get("sources", []):
+            how = "📌 pinned by the taste boost" if source.get("pinned") else "🔎 normal search"
+            st.write(f"{how} · {source['similarity']:.3f} · {source['title']} · {source.get('section', '')}")
 
 def show_assistant_extras(result):
     """Everything shown under an answer: tool cards, search plan, sources."""
     show_tool_results(result.get("tool_calls", []))
     show_search_plans(result.get("plans", []))
     show_sources(result.get("sources", []))
-
+    show_request_trace(result)
 
 def ask_starter_question(question):
     """Called when a starter button is tapped: ask that question next."""
