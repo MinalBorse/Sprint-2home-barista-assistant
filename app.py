@@ -32,15 +32,25 @@
 
 import os
 import uuid
+from collections import Counter
 
 import streamlit as st
 
-from src.agent import AGENT_SYSTEM_PROMPT, UserPreferences, ask_agent, build_agent, style_instructions
+from src.agent import AGENT_SYSTEM_PROMPT, UserPreferences, ask_agent, build_agent, make_search_tool, style_instructions
 from src.brew_methods import ANY, BREW_METHODS
+from src.document_splitter import CHUNK_OVERLAP, CHUNK_SIZE, MIN_CHUNK_CHARACTERS
 from src.llm import get_llm
-from src.rag import PLANNER_SYSTEM_PROMPT
-from src.security import BLOCKED_REPLY, check_message, llm_check_message
+from src.rag import PLANNER_SYSTEM_PROMPT, TOP_K
+from src.security import (
+    BLOCKED_REPLY,
+    GUARD_CATEGORIES,
+    GUARD_SYSTEM_PROMPT,
+    INJECTION_PATTERNS,
+    check_message,
+    llm_check_message,
+)
 from src.theme import AVATAR_IMAGE, apply_cafe_theme, show_sidebar_brand, show_welcome_banner
+from src.tools import CALCULATOR_TOOLS
 from src.vector_store import KNOWLEDGE_BASE_COLLECTION, get_vector_store
 
 # ----------------------------------------------------------
@@ -300,7 +310,27 @@ with st.sidebar:
                     language=None, wrap_lines=True)
         with st.expander("Search planner prompt"):
             st.code(PLANNER_SYSTEM_PROMPT, language=None, wrap_lines=True)
-
+        with st.expander("What the AI sees: the tools"):
+            for dev_tool in [make_search_tool(load_resources()[0], None)] + CALCULATOR_TOOLS:
+                st.markdown(f"**{dev_tool.name}**: inputs {list(dev_tool.args.keys())}")
+                st.caption(dev_tool.description)
+        with st.expander("Model and RAG settings"):
+            st.code(f"chat model:      {os.getenv('MODEL_NAME', 'openai/gpt-4o-mini')}\n"
+                    f"embedding model: {os.getenv('EMBEDDING_MODEL_NAME', 'openai/text-embedding-3-small')}\n"
+                    f"temperature:     0.2 (agent, planner)  ·  0 (guard, topic tagging)\n"
+                    f"chunks:          {CHUNK_SIZE} characters, {CHUNK_OVERLAP} overlap, min {MIN_CHUNK_CHARACTERS}\n"
+                    f"top-k:           {TOP_K} chunks per search", language=None)
+        with st.expander("Knowledge base and memory"):
+            dev_meta = load_resources()[0]._collection.get(include=["metadatas"])["metadatas"]
+            st.write(f"**{len(dev_meta)} chunks** · conversation id: `{st.session_state.get('thread_id', '-')}`")
+            st.write("By topic:", dict(Counter(m.get("topic", "?") for m in dev_meta).most_common()))
+            st.write("By brewer:", dict(Counter(m.get("brew_method", "?") for m in dev_meta).most_common()))
+        with st.expander("Security guards"):
+            st.markdown(f"**Pattern guard**: {len(INJECTION_PATTERNS)} patterns, checked first (free, instant)")
+            for _, dev_reason in INJECTION_PATTERNS:
+                st.caption(f"• {dev_reason}")
+            st.markdown(f"**LLM guard**: categories {GUARD_CATEGORIES}, only prompt_injection is blocked")
+            st.code(GUARD_SYSTEM_PROMPT, language=None, wrap_lines=True)
     st.header("On the menu tonight")
     st.markdown(
         "- Answer brewing and taste questions from my coffee guides\n"
