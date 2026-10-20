@@ -523,30 +523,30 @@ The full report, my verdict on every finding, the exact commands I ran, and the 
 
 ### Part 1: Introduction to LangChain
 
-| Lesson | Idea | Where in this project | Learning script |
-|---|---|---|---|
-| Why LangChain | one standard interface to any model | `src/llm.py`: `ChatOpenAI` pointed at OpenRouter; model name in `.env` | `learning/step01_hello.py` |
-| Models and messages | System, Human, AI and Tool messages; the model reads the list and writes the next one | middleware builds the SystemMessage; the question becomes a HumanMessage; `isinstance` reads the results | `learning/step01_hello.py` |
-| Tools | the model requests functions it never sees | `src/tools.py`, the search tool, the tool cards | `learning/step02_tool.py` |
-| Memory | the model remembers nothing; history is re-sent | `InMemorySaver` + `thread_id` | `learning/step03_memory.py` |
-| Agents | reason → act → observe, until a text answer | `create_agent` in `src/agent.py` | `learning/step04_tool_request.py`, `learning/step05_agent_loop.py` |
+| Lesson | Idea | Where in this project |
+|---|---|---|
+| Why LangChain | one standard interface to any model | `src/llm.py`: `ChatOpenAI` pointed at OpenRouter; model name in `.env` |
+| Models and messages | System, Human, AI and Tool messages; the model reads the list and writes the next one | middleware builds the SystemMessage; the question becomes a HumanMessage; `isinstance` reads the results |
+| Tools | the model requests functions it never sees | `src/tools.py`, the search tool, the tool cards |
+| Memory | the model remembers nothing; history is re-sent | `InMemorySaver` + `thread_id` |
+| Agents | reason → act → observe, until a text answer | `create_agent` in `src/agent.py` |
 
 ### Part 2: Retrieval-Augmented Generation
 
-| Lesson | Idea | Where in this project | Learning script |
-|---|---|---|---|
-| What RAG is | prepare once, look up before answering | `build_knowledge_base.py` + the search tool | `learning/step06_rag_by_hand.py` |
-| Embeddings | text → 1,536 numbers; same model for documents and questions | `src/embeddings.py` | `learning/step07_embeddings.py` |
-| Retrieval | keyword (BM25), vector (cosine), hybrid; precision and recall | `retrieve()` in `src/rag.py` | `learning/step08_bm25.py`, `tests/step09_hybrid_eval.py` |
-| Augmented generation | notes in the prompt; grounding, fallback, citations | `answer_prompt`, `build_context()`, agent rules | `learning/step10_rag_with_template.py` |
-| Vector databases | store text + embeddings + metadata; filter | `src/vector_store.py`, `chroma_db/` | `learning/step11_chroma_build.py`, `learning/step12_chroma_search.py` |
+| Lesson | Idea | Where in this project |
+|---|---|---|
+| What RAG is | prepare once, look up before answering | `build_knowledge_base.py` + the search tool |
+| Embeddings | text → 1,536 numbers; same model for documents and questions | `src/embeddings.py` |
+| Retrieval | keyword (BM25), vector (cosine), hybrid; precision and recall | `retrieve()` in `src/rag.py`, `tests/step09_hybrid_eval.py` |
+| Augmented generation | notes in the prompt; grounding, fallback, citations | `answer_prompt`, `build_context()`, agent rules |
+| Vector databases | store text + embeddings + metadata; filter | `src/vector_store.py`, `chroma_db/` |
 
 ### Part 3: Integrating RAG with LangChain
 
 | Lesson | Idea | Where in this project |
 |---|---|---|
-| Loading | loaders → `Document` objects; clean before splitting | `src/document_loader.py` (`learning/step13_load_documents.py`) |
-| Splitting | chunk size, overlap, structure-aware splitting | `src/document_splitter.py` (`learning/step14_split_documents.py`) |
+| Loading | loaders → `Document` objects; clean before splitting | `src/document_loader.py` |
+| Splitting | chunk size, overlap, structure-aware splitting | `src/document_splitter.py` |
 | Embedding and storing | embed once; fixed ids; no stale chunks | `build_knowledge_base.py` |
 | Query translation and structured retrieval | rewrite + metadata filters (self-querying) | `plan_search()`, `build_filter()`, `retrieve()` (`tests/step15`, `tests/step16`) |
 | Evaluation with RAGAs | LLM judge; retrieval vs generation metrics; A/B testing | `evaluate_rag.py`, `src/eval_test_set.py` |
@@ -555,7 +555,7 @@ The full report, my verdict on every finding, the exact commands I ran, and the 
 
 | Lesson | Idea | Where in this project |
 |---|---|---|
-| Function calling | tool schemas, `tool_calls` with ids, parallel calls; structured output uses the same mechanism | `bind_tools` in `step04`; `with_structured_output` for the planner and the LLM guard |
+| Function calling | tool schemas, `tool_calls` with ids, parallel calls; structured output uses the same mechanism | `with_structured_output` for the planner and the LLM guard |
 | Agents with `create_agent` | middleware, runtime context, checkpointer | `@dynamic_prompt`, `ToolRuntime[UserPreferences]`, `InMemorySaver` |
 | Designing good tools | one job, clear description, typed inputs, validation, helpful errors | `src/tools.py`; the two-way ratio tool; the siphon description fix |
 | Evaluating tool calling | right tool, right inputs; under- and over-calling; regression tests | `tests/step17_tools.py`, `tests/step18_agent.py` |
@@ -610,8 +610,7 @@ home-barista-assistant/
 │   ├── security.py             # pattern guard + LLM guard
 │   ├── theme.py                # the app's design
 │   ├── eval_test_set.py        # 10 RAGAs questions
-│   └── sample_notes.py         # practice notes for the learning scripts
-├── learning/                   # step01–step14: one concept per script
+│   └── sample_notes.py         # 5 small practice notes (not used by the app)
 └── tests/                      # step09, step15–step19: evaluations and tests
 ```
 
@@ -668,7 +667,7 @@ python -m tests.step19_security   # part 1 free, part 2 uses the LLM guard
 python evaluate_rag.py            # a few minutes, a few cents
 ```
 
-Scripts in `learning/` and `tests/` are run as modules (`python -m folder.script`) from the project root, so they can import `src`.
+Scripts in `tests/` are run as modules (`python -m folder.script`) from the project root, so they can import `src`.
 
 ---
 
@@ -808,7 +807,7 @@ This section follows the Sprint 2 project page item by item.
 | 2 | Add real-time data updates to knowledge base | ❌ | the knowledge base is rebuilt by hand |
 | 3 | **Protect your app against prompt injection** | ✅ | pattern guard + LLM guard; 17 / 17, 7 / 7 unseen attacks, 0 false alarms |
 | 4 | Add user authentication and personalisation | ⏳ | personalisation ✅ (My brewer, filters, answer style); **authentication ❌** |
-| 5 | Calculate and display token usage and costs | ❌ | `usage_metadata` explored in a learning script, not shown in the app |
+| 5 | Calculate and display token usage and costs | ❌ | not shown in the app |
 | 6 | **Add visualisation of tool call results** | ✅ | tool cards with inputs and results |
 | 7 | Implement conversation export in various formats (PDF, CSV, JSON) | ❌ | |
 | 8 | Connect to tools from a publicly available remote MCP server | ❌ | MCP studied in theory ([section 10](#10-course-content-applied)) |
@@ -839,8 +838,8 @@ This section follows the Sprint 2 project page item by item.
 | Criterion | Status | Evidence in this project |
 |---|---|---|
 | Understands the basic principles of how RAG works | ✅ | the two-phase pipeline ([sections 3–5](#3-how-one-question-is-answered)); retrieval methods compared; RAGAs |
-| Can explain tool calling implementation clearly | ✅ | the agent loop ([section 6](#6-the-agent-and-its-tools)); `learning/step04` and `step05` by hand vs. `create_agent` |
-| Demonstrates good code organisation practices | ✅ | one area per file, shared doorways, `uv` with a lockfile, `ruff` lint and format, `learning/` and `tests/` folders, [`docs/codebase_map.html`](docs/codebase_map.html) |
+| Can explain tool calling implementation clearly | ✅ | the agent loop ([section 6](#6-the-agent-and-its-tools)), built with `create_agent` |
+| Demonstrates good code organisation practices | ✅ | one area per file, shared doorways, `uv` with a lockfile, `ruff` lint and format, a `tests/` folder, [`docs/codebase_map.html`](docs/codebase_map.html) |
 | Can identify potential error scenarios and edge cases | ✅ | fallbacks and validation; the keyword-order traps; bugs found by testing, including the search tool crash reproduced before and after its fix ([section 9](#9-evaluation-and-testing)) |
 | Knows how to use a front-end library | ✅ | Streamlit chat, caching, session state, status, custom theme ([section 8](#8-the-user-interface)) |
 | The project works as intended | ✅ | chat with the app; all automated tests pass |
