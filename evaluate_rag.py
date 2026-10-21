@@ -73,7 +73,7 @@ openrouter_client = AsyncOpenAI(
     base_url="https://openrouter.ai/api/v1",
 )
 
-judge_llm = llm_factory(os.getenv("MODEL_NAME", "openai/gpt-4o-mini"), client=openrouter_client)
+judge_llm = llm_factory(os.getenv("JUDGE_MODEL_NAME", os.getenv("MODEL_NAME", "openai/gpt-4o-mini")), client=openrouter_client)
 judge_embeddings = RagasEmbeddings(
     client=openrouter_client,
     model=os.getenv("EMBEDDING_MODEL_NAME", "openai/text-embedding-3-small"),

@@ -1,23 +1,28 @@
 question,search_query,answer,faithfulness,answer_relevancy,context_precision,context_recall
-"My coffee tastes harsh and burnt, how can I fix it?","My coffee tastes harsh and burnt, how can I fix it?","To fix harsh and burnt coffee, try the following: 
-- Use a coarser grind, so water extracts flavor more slowly.
+"My coffee tastes harsh and burnt, how can I fix it?","My coffee tastes harsh and burnt, how can I fix it?","To fix harsh and burnt coffee, try the following:
+
+- Use a coarser grind, so water extracts flavour more slowly.
 - Use slightly cooler water, around 90 to 93 degrees Celsius.
 - Brew for a shorter time.
-- For a French press, steep for about 4 minutes and pour all the coffee out right away.
+- For a French press, steep for about 4 minutes, and pour all the coffee out right away.
 
-(Sources: troubleshooting guide)",1.0,0.8418421081164672,0.7499999999625,1.0
-why's my cup so meh?,why's my cup so meh?,"Your coffee might be flat or dull, which usually indicates stale beans. Try using fresher beans. (Sources: troubleshooting guide)",0.6666666666666666,0.5196791997926666,0.4166666666458333,1.0
-"it's kinda puckery and thin, help","it's kinda puckery and thin, help","It sounds like your coffee is sour and weak. To fix it, try grinding finer and using more coffee. A common starting ratio is 1 gram of coffee to 16 grams of water (1:16). 
+Note: Dark roasts are naturally more bitter and smoky. If you dislike bitterness, try a medium or light roast.
 
-(Sources: troubleshooting guide)",0.75,0.21617508468628052,0.8055555555287036,1.0
-How hot should the water be for pour over?,How hot should the water be for pour over?,The water temperature for pour-over should be between 92 to 96 degrees Celsius. (Sources: brewing guide),1.0,0.8530458487848679,0.999999999975,1.0
+(Sources: troubleshooting guide)",1.0,0.854002853176912,0.7499999999625,1.0
+why's my cup so meh?,why's my cup so meh?,"Your cup may taste flat or dull, which usually indicates stale beans. Try using fresher beans to improve the flavor. 
+
+(Sources: troubleshooting guide)",1.0,0.5993683295051626,0.4166666666458333,0.5
+"it's kinda puckery and thin, help","it's kinda puckery and thin, help","It sounds like your coffee is sour and weak. To fix this, try grinding finer and using more coffee. A common starting ratio is 1 gram of coffee to 16 grams of water (1:16). 
+
+(Sources: troubleshooting guide)",0.25,0.2475624227555621,0.8055555555287036,1.0
+How hot should the water be for pour over?,How hot should the water be for pour over?,The water temperature for pour-over should be between 92 to 96 degrees Celsius. (Sources: brewing guide),1.0,0.8904326700189326,0.9999999999666667,1.0
 How long should I steep a French press?,How long should I steep a French press?,You should steep a French press for about 4 minutes. (Sources: brewing guide),1.0,0.9894669455099517,0.9166666666361111,1.0
-Why does my moka pot coffee taste burnt?,Why does my moka pot coffee taste burnt?,"Your moka pot coffee may taste burnt due to overheating. This is the most common cause of bitter, burnt-tasting moka coffee. To fix it, ensure you brew on medium-low heat and take it off the heat when the coffee starts to sputter or gurgle. 
+Why does my moka pot coffee taste burnt?,Why does my moka pot coffee taste burnt?,"Your moka pot coffee may taste burnt due to overheating, which is the most common cause of bitter, burnt-tasting moka coffee. To fix this, ensure you cool the base under cold water to stop brewing and avoid leaving it on the heat for too long. 
 
-(Sources: brewing guide, troubleshooting guide)",0.75,0.9204911529783085,0.9166666666361111,1.0
-What ratio should I use for espresso?,What ratio should I use for espresso?,"For espresso, use a ratio of about 1:2, for example, 18 grams of ground coffee to get 36 grams of espresso in the cup. (Sources: brewing guide)",1.0,0.8449431077607006,0.49999999995,1.0
+(Sources: brewing guide, troubleshooting guide)",1.0,0.951526159019866,0.9999999999,1.0
+What ratio should I use for espresso?,What ratio should I use for espresso?,"For espresso, use a ratio of about 1:2, for example, 18 grams of ground coffee to get 36 grams of espresso in the cup. (Sources: brewing guide)",1.0,0.8502117086133055,0.49999999995,1.0
 How do I make cold brew?,How do I make cold brew?,"To make cold brew, steep coarse coffee in cold or room-temperature water for 12 to 24 hours. Use a ratio of about 1:8, for example, 100 grams of coffee for 800 grams of water. After steeping, filter the coffee and dilute the concentrate with water or milk at about a 1:1 ratio before drinking. (Sources: coffee preparation, brewing guide)",1.0,0.9705659900452851,0.99999999995,1.0
-My espresso shot runs really fast and tastes sour,My espresso shot runs really fast and tastes sour,"Your espresso shot is likely sour due to under-extraction. To fix this, try grinding your coffee finer. 
+My espresso shot runs really fast and tastes sour,My espresso shot runs really fast and tastes sour,"Your espresso shot is likely sour due to under-extraction. Try grinding your coffee finer to slow down the extraction. 
 
-(Sources: troubleshooting guide)",1.0,0.8451548467405131,0.9999999999666667,1.0
-How do I make latte art?,How do I make latte art?,I don't have information about that in my coffee notes.,1.0,0.0,0.0,1.0
+(Sources: troubleshooting guide)",0.5,0.8451548467405131,0.9999999999666667,1.0
+How do I make latte art?,How do I make latte art?,I don't have information about that in my coffee notes.,0.0,0.0,0.0,1.0
