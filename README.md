@@ -461,6 +461,13 @@ BM25 missed synonym questions (*"acidic and tangy"*). Hybrid fixed *"harsh and b
 | with query rewriting | 0.81 | **0.72** | **0.82** | 0.90 |
 | without query rewriting | **0.91** | 0.71 | 0.68 | 0.90 |
 
+**Run 3: 2026-10-20 (160 chunks)**: a repeat run with no changes, to check how stable the scores are.
+
+| Mode | Faithfulness | Answer relevancy | Context precision | Context recall |
+|---|---|---|---|---|
+| with query rewriting | 0.92 | **0.72** | **0.82** | 0.90 |
+| without query rewriting | 0.92 | 0.70 | 0.73 | **1.00** |
+
 ```mermaid
 flowchart LR
     Q["Question"] -- "answer relevancy" --- A["Answer"]
@@ -468,11 +475,13 @@ flowchart LR
     C -- "context precision + recall" --- R["Reference answer"]
 ```
 
-**What the two runs show:**
+**What the three runs show:**
 - **better guides raised the baseline:** recall without rewriting went from 0.78 to 0.90
-- **the planner now mainly improves precision:** 0.68 → 0.82 (*"meh"*: 0.42 → 1.00)
+- **the planner consistently improves precision:** 0.84 vs 0.79, 0.82 vs 0.68 and 0.82 vs 0.73 in the three runs (*"meh"*: 0.42 → 1.00 in runs 2 and 3)
 - **the faithfulness drop is mostly one row:** an espresso answer scored 0.25, but on inspection every piece of advice was in the guides, and precision and recall were 1.00. The judge had counted the user's own description, repeated in the answer, as unsupported claims. With 10 questions, one answer moves an average by up to 0.1, so low-scoring rows are always inspected before changing anything.
 - the latte art row scores 0 on relevancy, precision and recall **by design**: the bot correctly refused (faithfulness 1.00)
+- **run 3's recall gap is one row:** without rewriting, recall is 1.00 vs 0.90, entirely because of the off-topic latte art question (0.00 with rewriting, 1.00 without); on the other nine questions, recall is 1.00 in both modes
+- **the judge varies between runs:** the espresso row scored 0.25 in run 2 and 0.57 in run 3 with the same app, which is why low-scoring rows are read, not trusted
 
 **Two honest caveats** (found in the AI code review, findings #4 and #5):
 - the *"without query rewriting"* mode also switches off the planner's **brew filter and taste boost**, so this A/B test compares the **whole planner** (rewriting + filters + boost) against plain search, not rewriting alone
