@@ -490,7 +490,7 @@ flowchart LR
 - **run 3's recall gap is one row:** without rewriting, recall is 1.00 vs 0.90, entirely because of the off-topic latte art question (0.00 with rewriting, 1.00 without); on the other nine questions, recall is 1.00 in both modes
 - **the judge varies between runs:** the espresso row scored 0.25 in run 2 and 0.57 in run 3 with the same app, which is why low-scoring rows are read, not trusted
 - **an independent judge confirms the planner:** with gpt-4o judging, the planner is ahead on all four metrics (*"meh"*: precision 0.42 → 1.00, recall 0.50 → 1.00). Faithfulness is 0.79, just under the 0.8 target, because this judge scores the correct latte art refusal 0.00; without that row it is about 0.88 with rewriting and 0.86 without
-
+- **the puckery row is grounded, but incomplete:** its answer repeats the sour section word for word, so every claim is in the guide (the 0.5 faithfulness is the judge being strict). But the user described two problems, sour and weak, and the answer kept the sour tip "use slightly less coffee", which conflicts with the weak fix "use more coffee". The fix is in my content: a line for coffee that is both sour and weak
 **Two honest caveats** (found in the AI code review, findings #4 and #5):
 - the *"without query rewriting"* mode also switches off the planner's **brew filter and taste boost**, so this A/B test compares the **whole planner** (rewriting + filters + boost) against plain search, not rewriting alone
 - RAGAs evaluates the **RAG chain** (`answer_with_rag()`), which shares the planner and retrieval with the app, but the app's **answers** are written by the agent with its own prompt. Retrieval scores transfer; answer scores only partly
